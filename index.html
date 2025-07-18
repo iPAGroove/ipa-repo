@@ -87,7 +87,6 @@
       vipSettings.style.display = 'none';
     });
 
-    // Загружаем только обычный список (можно расширить для vip)
     onValue(ref(db, 'apps'), (snapshot) => {
       output.innerHTML = '<h2>📱 Обычные приложения</h2>';
       snapshot.forEach(child => {
@@ -181,21 +180,21 @@
 <body>
   <h1>🛠 IpaVip Admin Panel</h1>
   <form id="appForm">
-    <select id="repoType">
+    <select id="repoType" name="repoType">
       <option value="apps">Обычный репозиторий</option>
       <option value="vipApps">VIP репозиторий (токен)</option>
     </select>
-    <input type="text" id="name" placeholder="Название" required />
-    <input type="text" id="bundleID" placeholder="Bundle ID" required />
-    <input type="text" id="version" placeholder="Версия" required />
-    <input type="number" id="size" placeholder="Размер (в байтах)" required />
-    <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
-    <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
-    <textarea id="description" placeholder="Описание"></textarea>
+    <input type="text" id="name" name="name" placeholder="Название" required />
+    <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
+    <input type="text" id="version" name="version" placeholder="Версия" required />
+    <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
+    <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
+    <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку" required />
+    <textarea id="description" name="description" placeholder="Описание"></textarea>
 
     <div id="vipSettings">
       <label>📅 Дата окончания токена:</label>
-      <input type="datetime-local" id="expireDate" />
+      <input type="datetime-local" id="expireDate" name="expireDate" />
     </div>
 
     <button type="submit">💾 Добавить</button>
