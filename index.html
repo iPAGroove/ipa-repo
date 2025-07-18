@@ -1,13 +1,76 @@
-<h2>iPA Groove Установки</h2>
-<ul>
-  <li>
-    <a href="itms-services://?action=download-manifest&url=https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/airportcity.plist">
-      📲 Установить Airport City
-    </a>
-  </li>
-  <li>
-    <a href="itms-services://?action=download-manifest&url=https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/alieninvasion.plist">
-      📲 Установить Alien Invasion
-    </a>
-  </li>
-</ul>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>iPA Groove | Репозиторий</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #0f0f0f;
+      font-family: Arial, sans-serif;
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #00ffd0;
+    }
+    .app {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .app img {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      margin-right: 15px;
+    }
+    .app-content {
+      flex-grow: 1;
+    }
+    .app-title {
+      font-size: 18px;
+      margin: 0 0 5px;
+    }
+    .install-btn {
+      background: #00ffd0;
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .install-btn:hover {
+      background: #00bfa0;
+    }
+  </style>
+</head>
+<body>
+  <h1>iPA Groove Репозиторий</h1>
+
+  <div class="app">
+    <img src="https://i.imgur.com/bHhvNGZ.png" alt="Airport City">
+    <div class="app-content">
+      <p class="app-title">Airport City</p>
+      <a class="install-btn" href="itms-services://?action=download-manifest&url=https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/airportcity.plist">Установить</a>
+    </div>
+  </div>
+
+  <div class="app">
+    <img src="https://i.imgur.com/9k3HGLB.png" alt="Alien Invasion">
+    <div class="app-content">
+      <p class="app-title">Alien Invasion</p>
+      <a class="install-btn" href="itms-services://?action=download-manifest&url=https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/alieninvasion.plist">Установить</a>
+    </div>
+  </div>
+
+</body>
+</html>
