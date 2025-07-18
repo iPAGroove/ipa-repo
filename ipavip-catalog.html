@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>IpaVIP Repo Catalog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      color: #00ffd0;
+      text-align: center;
+    }
+    .app {
+      display: flex;
+      align-items: center;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .app img {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      margin-right: 15px;
+    }
+    .info {
+      flex: 1;
+    }
+    .info h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #00ffd0;
+    }
+    .info p {
+      margin: 5px 0;
+    }
+    .install {
+      background: #00ffd0;
+      color: #000;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>IpaVIP Repo</h1>
+  <div id="app-list">Загрузка...</div>
+
+  <script>
+    const REPO_URL = "https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/ipavip-repo.json";
+
+    fetch(REPO_URL)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("app-list");
+        container.innerHTML = "";
+
+        data.apps.forEach(app => {
+          const div = document.createElement("div");
+          div.className = "app";
+
+          div.innerHTML = `
+            <img src="\${app.iconURL}" alt="\${app.name}">
+            <div class="info">
+              <h2>\${app.name}</h2>
+              <p>\${app.version}</p>
+              <p>\${app.localizedDescription}</p>
+            </div>
+            <a class="install" href="\${app.downloadURL}">Установить</a>
+          `;
+
+          container.appendChild(div);
+        });
+      })
+      .catch(err => {
+        document.getElementById("app-list").innerText = "Ошибка загрузки репозитория.";
+        console.error("Ошибка загрузки JSON:", err);
+      });
+  </script>
+</body>
+</html>
