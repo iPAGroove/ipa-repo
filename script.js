@@ -1,6 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
   authDomain: "appgamesrepo.firebaseapp.com",
@@ -12,56 +9,41 @@ const firebaseConfig = {
   measurementId: "G-0YVBYHKG2D"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-const passwordInput = document.getElementById("passwordInput");
-const loginScreen = document.getElementById("loginScreen");
-const mainPanel = document.getElementById("mainPanel");
 const form = document.getElementById('appForm');
 const output = document.getElementById('appsList');
 const repoSelect = document.getElementById('repoType');
 const vipSettings = document.getElementById('vipSettings');
 const tokenOutput = document.getElementById('tokenOutput');
-const searchInput = document.getElementById('searchInput');
+const passwordInput = document.getElementById('passwordInput');
+const loginScreen = document.getElementById('loginScreen');
+const loginError = document.getElementById('loginError');
 let editKey = null;
 
-window.checkPassword = () => {
-  const password = passwordInput.value.trim();
-  if (password === "001E5C1A36C0001E") {
+const PASSWORD = "001E5C1A36C0001E";
+
+function checkPassword() {
+  if (passwordInput.value === PASSWORD) {
     loginScreen.style.display = "none";
-    mainPanel.style.display = "block";
-    loadApps();
   } else {
-    alert("❌ Неверный пароль!");
+    loginError.innerText = "❌ Неверный пароль";
   }
-};
+}
 
 repoSelect.addEventListener('change', () => {
   vipSettings.style.display = repoSelect.value === 'vipApps' ? 'block' : 'none';
   loadApps();
 });
 
-document.getElementById("generateToken").addEventListener("click", async () => {
-  const token = Math.random().toString(36).substring(2, 12);
-  const expireDate = new Date(document.getElementById("expireDate").value).toISOString();
-  await set(ref(db, `vipTokens/${token}`), {
-    createdAt: new Date().toISOString(),
-    expiresAt: expireDate
-  });
-  tokenOutput.innerHTML = \`
-    <h3>✅ VIP токен создан</h3>
-    <p><b>🔑 Токен:</b> <code>\${token}</code></p>
-    <p><b>📅 Истекает:</b> \${expireDate}</p>
-    <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
-https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=\${token}
-    </textarea>\`;
-});
-
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const iconUrl = form.iconURL.value.includes("?raw=true") ? form.iconURL.value : form.iconURL.value + "?raw=true";
+  const iconRaw = form.iconURL.value.endsWith("?raw=true")
+    ? form.iconURL.value
+    : form.iconURL.value + "?raw=true";
+
   const appData = {
     name: form.name.value,
     type: 1,
@@ -73,19 +55,39 @@ form.addEventListener('submit', async (e) => {
     downloadURL: form.downloadURL.value,
     developerName: "",
     localizedDescription: form.description.value,
-    icon: iconUrl,
-    iconURL: iconUrl,
+    icon: iconRaw,
+    iconURL: iconRaw,
     appUpdateTime: new Date().toISOString()
   };
 
   const repo = repoSelect.value;
-  const path = \`\${repo}/apps\`;
+  const path = `${repo}/apps`;
 
   if (editKey) {
-    await update(ref(db, \`\${path}/\${editKey}\`), appData);
+    await db.ref(`${path}/${editKey}`).update(appData);
     editKey = null;
   } else {
-    await push(ref(db, path), appData);
+    await db.ref(path).push(appData);
+  }
+
+  if (repo === 'vipApps') {
+    const token = Math.random().toString(36).substring(2, 12);
+    const expireDate = new Date(document.getElementById('expireDate').value).toISOString();
+
+    await db.ref(`vipTokens/${token}`).set({
+      createdAt: new Date().toISOString(),
+      expiresAt: expireDate
+    });
+
+    tokenOutput.innerHTML = `
+      <h3>✅ VIP токен создан</h3>
+      <p><b>🔑 Токен:</b> <code>${token}</code></p>
+      <p><b>📅 Истекает:</b> ${expireDate}</p>
+      <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
+https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
+      </textarea>`;
+  } else {
+    tokenOutput.innerHTML = '';
   }
 
   form.reset();
@@ -95,40 +97,40 @@ form.addEventListener('submit', async (e) => {
 
 function loadApps() {
   const repo = repoSelect.value;
-  const appsPath = \`\${repo}/apps\`;
+  const appsPath = `${repo}/apps`;
 
-  onValue(ref(db, appsPath), (snapshot) => {
-    output.innerHTML = "";
+  db.ref(appsPath).once('value', (snapshot) => {
+    output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
+    output.innerHTML += `<p><small>Путь: ${appsPath}</small></p><hr>`;
     snapshot.forEach(child => {
       const app = child.val();
-      if (!app.name.toLowerCase().includes(searchInput.value.toLowerCase())) return;
       const appDiv = document.createElement('div');
       appDiv.className = 'appCard';
-      appDiv.innerHTML = \`
-        <img src="\${app.iconURL}" width="48" height="48">
-        <strong>\${app.name}</strong> (\${app.version})<br>
-        <small>\${app.bundleID}</small><br>
-        <button class="editBtn" data-id="\${child.key}">✏️ Редактировать</button>
-        <button class="deleteBtn" onclick="deleteApp('\${repo}', '\${child.key}')">🗑️ Удалить</button>
-      \`;
-      appDiv.querySelector('.editBtn').addEventListener('click', () => {
+      appDiv.innerHTML = `
+        <img src="${app.iconURL}" width="48" height="48">
+        <strong>${app.name}</strong> (${app.version})<br>
+        <small>${app.bundleID}</small><br>
+        <button class="editBtn">✏️ Редактировать</button>
+        <button class="deleteBtn">🗑️ Удалить</button>
+      `;
+      output.appendChild(appDiv);
+
+      appDiv.querySelector('.editBtn').onclick = () => {
         form.name.value = app.name;
         form.bundleID.value = app.bundleID;
         form.version.value = app.version;
         form.size.value = app.size;
         form.downloadURL.value = app.downloadURL;
-        form.iconURL.value = app.iconURL.replace("?raw=true", "");
+        form.iconURL.value = app.iconURL;
         form.description.value = app.localizedDescription;
         editKey = child.key;
-      });
-      output.appendChild(appDiv);
+      };
+
+      appDiv.querySelector('.deleteBtn').onclick = () => {
+        db.ref(`${repo}/apps/${child.key}`).remove().then(() => loadApps());
+      };
     });
   });
 }
 
-function deleteApp(repo, key) {
-  remove(ref(db, \`\${repo}/apps/\${key}\`)).then(() => loadApps());
-}
-window.deleteApp = deleteApp;
-
-searchInput.addEventListener("input", () => loadApps());
+loadApps();
