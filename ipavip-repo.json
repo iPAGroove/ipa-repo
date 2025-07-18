@@ -12,19 +12,49 @@
   },
   "apps": [
     {
-      "name": "Альфа Банк",
+      "name": "Airport City",
       "type": 1,
-      "bundleID": "com.triptally.app",
-      "bundleIdentifier": "com.triptally.app",
-      "version": "1.4.2",
-      "size": 139584591,
-      "down": "https://repo.asdf.ad/ipa/com.triptally.app.ipa",
-      "downloadURL": "https://repo.asdf.ad/ipa/com.triptally.app.ipa",
+      "bundleID": "com.ipavip.airportcity",
+      "bundleIdentifier": "com.ipavip.airportcity",
+      "version": "8.39.01",
+      "size": 278000000,
+      "down": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Airport+City+_8.39.01_1751525738.ipa",
+      "downloadURL": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Airport+City+_8.39.01_1751525738.ipa",
       "developerName": "",
-      "localizedDescription": "Auto-uploaded: Альфа Банк",
-      "icon": "https://repo.asdf.ad/icons/com.triptally.app.png",
-      "iconURL": "https://repo.asdf.ad/icons/com.triptally.app.png",
-      "appUpdateTime": "2025-06-11T18:18:33+0300"
+      "localizedDescription": "Auto-uploaded: Airport City",
+      "icon": "https://i.imgur.com/bVoZsKi.png",
+      "iconURL": "https://i.imgur.com/bVoZsKi.png",
+      "appUpdateTime": "2025-07-18T15:40:00+0300"
+    },
+    {
+      "name": "Angry Birds 2",
+      "type": 1,
+      "bundleID": "com.ipavip.angrybirds2",
+      "bundleIdentifier": "com.ipavip.angrybirds2",
+      "version": "4.0.2",
+      "size": 256000000,
+      "down": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Angry+Birds+2+_4.0.2_1751526322.ipa",
+      "downloadURL": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Angry+Birds+2+_4.0.2_1751526322.ipa",
+      "developerName": "",
+      "localizedDescription": "Auto-uploaded: Angry Birds 2",
+      "icon": "https://i.imgur.com/RSlRgZg.png",
+      "iconURL": "https://i.imgur.com/RSlRgZg.png",
+      "appUpdateTime": "2025-07-18T15:42:00+0300"
+    },
+    {
+      "name": "ATHENA",
+      "type": 1,
+      "bundleID": "com.ipavip.athena",
+      "bundleIdentifier": "com.ipavip.athena",
+      "version": "1.0.6",
+      "size": 97000000,
+      "down": "https://vhistoretg.s3.eu-north-1.amazonaws.com/ATHENA_1.0.6_1749511741.ipa",
+      "downloadURL": "https://vhistoretg.s3.eu-north-1.amazonaws.com/ATHENA_1.0.6_1749511741.ipa",
+      "developerName": "",
+      "localizedDescription": "Auto-uploaded: ATHENA",
+      "icon": "https://i.imgur.com/D7ScVJw.png",
+      "iconURL": "https://i.imgur.com/D7ScVJw.png",
+      "appUpdateTime": "2025-07-18T15:45:00+0300"
     }
   ]
 }
