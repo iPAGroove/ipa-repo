@@ -1,3 +1,4 @@
+<!-- Полный рабочий HTML-файл с поддержкой обычного и VIP-репозитория -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -31,6 +32,7 @@
 
     repoSelect.addEventListener('change', () => {
       vipSettings.style.display = repoSelect.value === 'vipApps' ? 'block' : 'none';
+      loadApps(); // обновить список при переключении репозитория
     });
 
     form.addEventListener('submit', async (e) => {
@@ -85,39 +87,52 @@ https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
 
       form.reset();
       vipSettings.style.display = 'none';
+      loadApps(); // обновляем после добавления
     });
 
-    onValue(ref(db, 'apps'), (snapshot) => {
-      output.innerHTML = '<h2>📱 Обычные приложения</h2>';
-      snapshot.forEach(child => {
-        const app = child.val();
-        const appDiv = document.createElement('div');
-        appDiv.className = 'appCard';
-        appDiv.innerHTML = `
-          <img src="${app.iconURL}" width="48" height="48">
-          <strong>${app.name}</strong> (${app.version})<br>
-          <small>${app.bundleID}</small><br>
-          <button class="editBtn" data-id="${child.key}">✏️ Редактировать</button>
-          <button class="deleteBtn" onclick="deleteApp('${child.key}')">🗑️ Удалить</button>
-        `;
-        output.appendChild(appDiv);
+    function loadApps() {
+      const repo = repoSelect.value;
+      const appsPath = `${repo}/apps`;
 
-        appDiv.querySelector('.editBtn').addEventListener('click', () => {
-          form.name.value = app.name;
-          form.bundleID.value = app.bundleID;
-          form.version.value = app.version;
-          form.size.value = app.size;
-          form.downloadURL.value = app.downloadURL;
-          form.iconURL.value = app.iconURL;
-          form.description.value = app.localizedDescription;
-          editKey = child.key;
+      onValue(ref(db, appsPath), (snapshot) => {
+        output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
+        output.innerHTML += `<p><small>Путь: ${appsPath}</small></p>`;
+        output.innerHTML += `<hr>`;
+        snapshot.forEach(child => {
+          const app = child.val();
+          const appDiv = document.createElement('div');
+          appDiv.className = 'appCard';
+          appDiv.innerHTML = `
+            <img src="${app.iconURL}" width="48" height="48">
+            <strong>${app.name}</strong> (${app.version})<br>
+            <small>${app.bundleID}</small><br>
+            <button class="editBtn" data-id="${child.key}">✏️ Редактировать</button>
+            <button class="deleteBtn" onclick="deleteApp('${repo}', '${child.key}')">🗑️ Удалить</button>
+          `;
+          output.appendChild(appDiv);
+
+          appDiv.querySelector('.editBtn').addEventListener('click', () => {
+            form.name.value = app.name;
+            form.bundleID.value = app.bundleID;
+            form.version.value = app.version;
+            form.size.value = app.size;
+            form.downloadURL.value = app.downloadURL;
+            form.iconURL.value = app.iconURL;
+            form.description.value = app.localizedDescription;
+            editKey = child.key;
+          });
         });
-      });
-    });
+      }, { onlyOnce: true });
+    }
 
-    window.deleteApp = function (key) {
-      remove(ref(db, 'apps/' + key));
-    };
+    function deleteApp(repo, key) {
+      remove(ref(db, `${repo}/apps/${key}`)).then(() => loadApps());
+    }
+
+    window.deleteApp = deleteApp;
+
+    // Load on start
+    loadApps();
   </script>
   <style>
     body {
