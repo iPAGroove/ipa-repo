@@ -96,6 +96,7 @@ button:active {
   background: #b05263;
 }
 
+/* Исправления для кнопок в appCard */
 .appCard {
   display: flex;
   align-items: center;
@@ -105,6 +106,8 @@ button:active {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease;
+  flex-wrap: wrap; /* Добавлено для лучшего отображения на маленьких экранах */
+  gap: 10px; /* Добавлено для отступов между элементами */
 }
 
 .appCard:hover {
@@ -121,7 +124,8 @@ button:active {
 }
 
 .app-info {
-  flex-grow: 1;
+  flex-grow: 1; /* Позволяет информации о приложении занять все доступное место */
+  min-width: 150px; /* Минимальная ширина для app-info, чтобы не сжималось слишком сильно */
 }
 
 .app-info strong {
@@ -136,14 +140,16 @@ button:active {
 }
 
 .app-actions {
-  margin-left: 20px;
-  flex-shrink: 0;
+  display: flex; /* Используем flexbox для кнопок */
+  gap: 8px; /* Расстояние между кнопками */
+  flex-shrink: 0; /* Предотвращает сжатие кнопок */
+  margin-left: auto; /* Смещает кнопки вправо */
 }
 
 .app-actions button {
   padding: 8px 15px;
   font-size: 0.9em;
-  margin-left: 8px;
+  margin-right: 0; /* Убираем лишний margin-right */
 }
 
 #tokenOutput {
@@ -187,4 +193,30 @@ button:active {
 #admin-panel {
   width: 100%;
   max-width: 800px;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+  .appCard {
+    flex-direction: column; /* Элементы в карточке будут выстраиваться в колонку */
+    align-items: flex-start; /* Выравнивание по левому краю */
+  }
+
+  .appCard img {
+    margin-right: 0;
+    margin-bottom: 10px; /* Отступ после иконки */
+  }
+
+  .app-actions {
+    width: 100%; /* Кнопки занимают всю ширину */
+    justify-content: flex-start; /* Выравнивание кнопок по левому краю */
+    margin-top: 10px;
+    margin-left: 0; /* Убираем автоматический отступ слева */
+  }
+
+  .app-actions button {
+    width: auto; /* Кнопки сами определяют свою ширину */
+    flex-grow: 1; /* Позволяет кнопкам равномерно распределяться */
+    text-align: center; /* Центрируем текст кнопок */
+  }
 }
