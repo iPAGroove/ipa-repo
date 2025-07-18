@@ -15,12 +15,12 @@
       text-align: center;
       color: #ffcc00;
     }
-    form {
+    form, .game-list {
       background: #222;
       padding: 20px;
       border-radius: 8px;
-      max-width: 500px;
-      margin: 0 auto;
+      max-width: 600px;
+      margin: 20px auto;
     }
     input, textarea {
       width: 100%;
@@ -37,40 +37,20 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    #appList {
-      margin-top: 40px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
+    .game {
+      margin: 10px 0;
+      padding: 10px;
+      border-bottom: 1px solid #444;
     }
-    .app-card {
-      background: #222;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-    }
-    .app-card img {
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
-      margin-top: 8px;
-    }
-    .delete-btn {
-      margin-top: 10px;
-      background: red;
+    .actions button {
+      margin-left: 10px;
+      background: #e74c3c;
       color: #fff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 5px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
   <h1>🛠 IpaVip Admin Panel</h1>
-
   <form id="appForm">
     <input type="text" id="name" placeholder="Название" required />
     <input type="text" id="bundleID" placeholder="Bundle ID" required />
@@ -82,10 +62,81 @@
     <button type="submit">Добавить</button>
   </form>
 
-  <div id="appList"></div>
+  <div class="game-list" id="gameList">
+    <h2>Список игр</h2>
+    <div id="gamesContainer"></div>
+  </div>
 
-  <!-- Подключаем внешний JS с логикой Firebase -->
-  <script type="module" src="admin.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
+      authDomain: "appgamesrepo.firebaseapp.com",
+      databaseURL: "https://appgamesrepo-default-rtdb.firebaseio.com",
+      projectId: "appgamesrepo",
+      storageBucket: "appgamesrepo.firebasestorage.app",
+      messagingSenderId: "220298514248",
+      appId: "1:220298514248:web:f3193a6042d3e1a67a6d7d",
+      measurementId: "G-0YVBYHKG2D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const form = document.getElementById('appForm');
+    const gamesContainer = document.getElementById('gamesContainer');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const newApp = {
+        name: form.name.value,
+        type: 1,
+        bundleID: form.bundleID.value,
+        bundleIdentifier: form.bundleID.value,
+        version: form.version.value,
+        size: parseInt(form.size.value),
+        down: form.downloadURL.value,
+        downloadURL: form.downloadURL.value,
+        developerName: "",
+        localizedDescription: form.description.value,
+        icon: form.iconURL.value,
+        iconURL: form.iconURL.value,
+        appUpdateTime: new Date().toISOString()
+      };
+
+      const newPostKey = push(ref(db, 'apps')).key;
+      await set(ref(db, 'apps/' + newPostKey), newApp);
+      form.reset();
+    });
+
+    function loadGames() {
+      onValue(ref(db, 'apps'), (snapshot) => {
+        gamesContainer.innerHTML = '';
+        const data = snapshot.val();
+        if (data) {
+          Object.entries(data).forEach(([key, app]) => {
+            const div = document.createElement('div');
+            div.className = 'game';
+            div.innerHTML = `
+              <strong>${app.name}</strong> (${app.version})<br />
+              <img src="${app.iconURL}" width="40"> ${app.bundleID}<br />
+              <div class="actions">
+                <button onclick="deleteApp('${key}')">Удалить</button>
+              </div>
+            `;
+            gamesContainer.appendChild(div);
+          });
+        }
+      });
+    }
+
+    window.deleteApp = async (key) => {
+      await remove(ref(db, 'apps/' + key));
+    };
+
+    loadGames();
+  </script>
 </body>
 </html>
