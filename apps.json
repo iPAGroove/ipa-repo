@@ -1,19 +1,18 @@
 {
-  "name": "iPA Groove Repo",
-  "apps": [
+  "items": [
     {
       "name": "Airport City",
       "bundleID": "com.ipa.airportcity",
       "version": "8.39.01",
       "icon": "https://i.imgur.com/bHhvNGZ.png",
-      "plist": "https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/airportcity.plist"
+      "manifest": "https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/airportcity.plist"
     },
     {
       "name": "Alien Invasion",
       "bundleID": "com.ipa.alieninvasion",
       "version": "4.18.00",
       "icon": "https://i.imgur.com/9k3HGLB.png",
-      "plist": "https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/alieninvasion.plist"
+      "manifest": "https://raw.githubusercontent.com/iPAGroove/ipa-repo/main/plists/alieninvasion.plist"
     }
   ]
 }
