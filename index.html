@@ -6,14 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
       authDomain: "appgamesrepo.firebaseapp.com",
       databaseURL: "https://appgamesrepo-default-rtdb.firebaseio.com",
       projectId: "appgamesrepo",
-      storageBucket: "appgamesrepo.firebasestorage.app",
+      storageBucket: "appgamesrepo.appspot.com",
       messagingSenderId: "220298514248",
       appId: "1:220298514248:web:f3193a6042d3e1a67a6d7d",
       measurementId: "G-0YVBYHKG2D"
@@ -21,14 +21,22 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const appsRef = ref(db, 'apps');
 
     const form = document.getElementById('appForm');
     const output = document.getElementById('appsList');
+    const repoSelect = document.getElementById('repoType');
+    const vipSettings = document.getElementById('vipSettings');
+    const tokenOutput = document.getElementById('tokenOutput');
+
     let editKey = null;
 
-    form.addEventListener('submit', (e) => {
+    repoSelect.addEventListener('change', () => {
+      vipSettings.style.display = repoSelect.value === 'vipApps' ? 'block' : 'none';
+    });
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
       const appData = {
         name: form.name.value,
         type: 1,
@@ -45,17 +53,42 @@
         appUpdateTime: new Date().toISOString()
       };
 
+      const repo = repoSelect.value;
+      const path = repo + '/apps';
+
       if (editKey) {
-        update(ref(db, 'apps/' + editKey), appData);
+        await update(ref(db, `${repo}/apps/` + editKey), appData);
         editKey = null;
       } else {
-        push(appsRef, appData);
+        await push(ref(db, path), appData);
       }
+
+      // Генерация VIP токена
+      if (repo === 'vipApps') {
+        const token = Math.random().toString(36).substring(2, 12);
+        const expireDate = new Date(form.expireDate.value).toISOString();
+
+        await set(ref(db, `vipTokens/${token}`), {
+          createdAt: new Date().toISOString(),
+          expiresAt: expireDate
+        });
+
+        tokenOutput.innerHTML = `
+          <p><strong>🔑 VIP Token:</strong> ${token}</p>
+          <p><strong>⏳ Действует до:</strong> ${expireDate}</p>
+          <p><strong>📥 GBox ссылка:</strong> <a href="https://api-u3vwde53ja-uc.a.run.app/vipRepo?token=${token}" target="_blank">https://api.../vipRepo?token=${token}</a></p>
+        `;
+      } else {
+        tokenOutput.innerHTML = '';
+      }
+
       form.reset();
+      vipSettings.style.display = 'none';
     });
 
-    onValue(appsRef, (snapshot) => {
-      output.innerHTML = '<h2>Список игр</h2>';
+    // Загрузка существующих обычных приложений (по умолчанию)
+    onValue(ref(db, 'apps'), (snapshot) => {
+      output.innerHTML = '<h2>Список обычных приложений</h2>';
       snapshot.forEach(child => {
         const app = child.val();
         const appDiv = document.createElement('div');
@@ -97,14 +130,14 @@
       text-align: center;
       color: #ffcc00;
     }
-    form, #appsList {
+    form, #appsList, #tokenOutput {
       background: #222;
       padding: 20px;
       border-radius: 8px;
       max-width: 600px;
       margin: 0 auto 20px;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       margin-bottom: 10px;
       padding: 10px;
@@ -134,11 +167,18 @@
       vertical-align: middle;
       margin-right: 10px;
     }
+    #vipSettings {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <h1>🛠 IpaVip Admin Panel</h1>
   <form id="appForm">
+    <select id="repoType">
+      <option value="apps">Обычный репозиторий</option>
+      <option value="vipApps">VIP репозиторий (токен)</option>
+    </select>
     <input type="text" id="name" placeholder="Название" required />
     <input type="text" id="bundleID" placeholder="Bundle ID" required />
     <input type="text" id="version" placeholder="Версия" required />
@@ -146,9 +186,16 @@
     <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
     <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
     <textarea id="description" placeholder="Описание"></textarea>
+
+    <div id="vipSettings">
+      <label>Срок действия токена:</label>
+      <input type="datetime-local" id="expireDate" required />
+    </div>
+
     <button type="submit">Добавить</button>
   </form>
 
+  <div id="tokenOutput"></div>
   <div id="appsList"></div>
 </body>
 </html>
