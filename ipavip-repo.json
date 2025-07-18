@@ -1,0 +1,30 @@
+{
+  "name": "IpaVip Repo",
+  "identifier": "org.IpaVip.repo",
+  "sourceURL": "https://t.me/ipavip",
+  "iconURL": "https://s3-apple.com/repo-icon.png",
+  "website": "https://t.me/ipavip",
+  "ipawebsite": "https://t.me/ipavip",
+  "subtitle": "IPA LIBRARY",
+  "META": {
+    "repoName": "IpaVip Repo",
+    "repoIcon": "https://s3-apple.com/repo-icon.png"
+  },
+  "apps": [
+    {
+      "name": "Альфа Банк",
+      "type": 1,
+      "bundleID": "com.triptally.app",
+      "bundleIdentifier": "com.triptally.app",
+      "version": "1.4.2",
+      "size": 139584591,
+      "down": "https://repo.asdf.ad/ipa/com.triptally.app.ipa",
+      "downloadURL": "https://repo.asdf.ad/ipa/com.triptally.app.ipa",
+      "developerName": "",
+      "localizedDescription": "Auto-uploaded: Альфа Банк",
+      "icon": "https://repo.asdf.ad/icons/com.triptally.app.png",
+      "iconURL": "https://repo.asdf.ad/icons/com.triptally.app.png",
+      "appUpdateTime": "2025-06-11T18:18:33+0300"
+    }
+  ]
+}
