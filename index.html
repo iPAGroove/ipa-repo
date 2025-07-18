@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IpaVip Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #ffcc00;
+    }
+    form {
+      background: #222;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #ffcc00;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #jsonOutput {
+      white-space: pre-wrap;
+      background: #333;
+      padding: 10px;
+      margin-top: 20px;
+      border-radius: 5px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠 IpaVip Admin Panel</h1>
+
+  <form id="appForm">
+    <input type="text" id="name" placeholder="Название" required />
+    <input type="text" id="bundleID" placeholder="Bundle ID" required />
+    <input type="text" id="version" placeholder="Версия" required />
+    <input type="number" id="size" placeholder="Размер (в байтах)" required />
+    <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
+    <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
+    <textarea id="description" placeholder="Описание"></textarea>
+    <button type="submit">Добавить</button>
+  </form>
+
+  <div id="jsonOutput"></div>
+
+  <script>
+    const form = document.getElementById('appForm');
+    const output = document.getElementById('jsonOutput');
+
+    const baseJson = {
+      name: "Haked Boost",
+      identifier: "org.IpaVip.repo",
+      sourceURL: "https://t.me/ipavip",
+      iconURL: "https://s3-apple.com/repo-icon.png",
+      website: "https://t.me/ipagroove",
+      ipawebsite: "https://t.me/ipagroove",
+      subtitle: "IPA LIBRARY",
+      META: {
+        repoName: "IpaVip Repo",
+        repoIcon: "https://s3-apple.com/repo-icon.png"
+      },
+      apps: []
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const newApp = {
+        name: form.name.value,
+        type: 1,
+        bundleID: form.bundleID.value,
+        bundleIdentifier: form.bundleID.value,
+        version: form.version.value,
+        size: parseInt(form.size.value),
+        down: form.downloadURL.value,
+        downloadURL: form.downloadURL.value,
+        developerName: "",
+        localizedDescription: form.description.value,
+        icon: form.iconURL.value,
+        iconURL: form.iconURL.value,
+        appUpdateTime: new Date().toISOString()
+      };
+
+      baseJson.apps.push(newApp);
+      output.textContent = JSON.stringify(baseJson, null, 2);
+
+      form.reset();
+    });
+  </script>
+</body>
+</html>
