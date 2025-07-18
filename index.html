@@ -4,6 +4,88 @@
   <meta charset="UTF-8" />
   <title>IpaVip Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
+      authDomain: "appgamesrepo.firebaseapp.com",
+      databaseURL: "https://appgamesrepo-default-rtdb.firebaseio.com",
+      projectId: "appgamesrepo",
+      storageBucket: "appgamesrepo.firebasestorage.app",
+      messagingSenderId: "220298514248",
+      appId: "1:220298514248:web:f3193a6042d3e1a67a6d7d",
+      measurementId: "G-0YVBYHKG2D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const appsRef = ref(db, 'apps');
+
+    const form = document.getElementById('appForm');
+    const output = document.getElementById('appsList');
+    let editKey = null;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const appData = {
+        name: form.name.value,
+        type: 1,
+        bundleID: form.bundleID.value,
+        bundleIdentifier: form.bundleID.value,
+        version: form.version.value,
+        size: parseInt(form.size.value),
+        down: form.downloadURL.value,
+        downloadURL: form.downloadURL.value,
+        developerName: "",
+        localizedDescription: form.description.value,
+        icon: form.iconURL.value,
+        iconURL: form.iconURL.value,
+        appUpdateTime: new Date().toISOString()
+      };
+
+      if (editKey) {
+        update(ref(db, 'apps/' + editKey), appData);
+        editKey = null;
+      } else {
+        push(appsRef, appData);
+      }
+      form.reset();
+    });
+
+    onValue(appsRef, (snapshot) => {
+      output.innerHTML = '<h2>Список игр</h2>';
+      snapshot.forEach(child => {
+        const app = child.val();
+        const appDiv = document.createElement('div');
+        appDiv.className = 'appCard';
+        appDiv.innerHTML = `
+          <img src="${app.iconURL}" width="48" height="48">
+          <strong>${app.name}</strong> (${app.version})<br>
+          <small>${app.bundleID}</small><br>
+          <button class="editBtn" data-id="${child.key}">Редактировать</button>
+          <button class="deleteBtn" onclick="deleteApp('${child.key}')">Удалить</button>
+        `;
+        output.appendChild(appDiv);
+
+        appDiv.querySelector('.editBtn').addEventListener('click', () => {
+          form.name.value = app.name;
+          form.bundleID.value = app.bundleID;
+          form.version.value = app.version;
+          form.size.value = app.size;
+          form.downloadURL.value = app.downloadURL;
+          form.iconURL.value = app.iconURL;
+          form.description.value = app.localizedDescription;
+          editKey = child.key;
+        });
+      });
+    });
+
+    window.deleteApp = function(key) {
+      remove(ref(db, 'apps/' + key));
+    }
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,12 +97,12 @@
       text-align: center;
       color: #ffcc00;
     }
-    form, .game-list {
+    form, #appsList {
       background: #222;
       padding: 20px;
       border-radius: 8px;
       max-width: 600px;
-      margin: 20px auto;
+      margin: 0 auto 20px;
     }
     input, textarea {
       width: 100%;
@@ -36,16 +118,21 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin-right: 10px;
     }
-    .game {
-      margin: 10px 0;
-      padding: 10px;
-      border-bottom: 1px solid #444;
-    }
-    .actions button {
-      margin-left: 10px;
+    .deleteBtn {
       background: #e74c3c;
       color: #fff;
+    }
+    .appCard {
+      background: #333;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .appCard img {
+      vertical-align: middle;
+      margin-right: 10px;
     }
   </style>
 </head>
@@ -62,81 +149,6 @@
     <button type="submit">Добавить</button>
   </form>
 
-  <div class="game-list" id="gameList">
-    <h2>Список игр</h2>
-    <div id="gamesContainer"></div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
-      authDomain: "appgamesrepo.firebaseapp.com",
-      databaseURL: "https://appgamesrepo-default-rtdb.firebaseio.com",
-      projectId: "appgamesrepo",
-      storageBucket: "appgamesrepo.firebasestorage.app",
-      messagingSenderId: "220298514248",
-      appId: "1:220298514248:web:f3193a6042d3e1a67a6d7d",
-      measurementId: "G-0YVBYHKG2D"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const form = document.getElementById('appForm');
-    const gamesContainer = document.getElementById('gamesContainer');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const newApp = {
-        name: form.name.value,
-        type: 1,
-        bundleID: form.bundleID.value,
-        bundleIdentifier: form.bundleID.value,
-        version: form.version.value,
-        size: parseInt(form.size.value),
-        down: form.downloadURL.value,
-        downloadURL: form.downloadURL.value,
-        developerName: "",
-        localizedDescription: form.description.value,
-        icon: form.iconURL.value,
-        iconURL: form.iconURL.value,
-        appUpdateTime: new Date().toISOString()
-      };
-
-      const newPostKey = push(ref(db, 'apps')).key;
-      await set(ref(db, 'apps/' + newPostKey), newApp);
-      form.reset();
-    });
-
-    function loadGames() {
-      onValue(ref(db, 'apps'), (snapshot) => {
-        gamesContainer.innerHTML = '';
-        const data = snapshot.val();
-        if (data) {
-          Object.entries(data).forEach(([key, app]) => {
-            const div = document.createElement('div');
-            div.className = 'game';
-            div.innerHTML = `
-              <strong>${app.name}</strong> (${app.version})<br />
-              <img src="${app.iconURL}" width="40"> ${app.bundleID}<br />
-              <div class="actions">
-                <button onclick="deleteApp('${key}')">Удалить</button>
-              </div>
-            `;
-            gamesContainer.appendChild(div);
-          });
-        }
-      });
-    }
-
-    window.deleteApp = async (key) => {
-      await remove(ref(db, 'apps/' + key));
-    };
-
-    loadGames();
-  </script>
+  <div id="appsList"></div>
 </body>
 </html>
