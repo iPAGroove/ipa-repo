@@ -1,225 +1,43 @@
-<!-- Полный рабочий HTML-файл с поддержкой обычного и VIP-репозитория -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <title>IpaVip Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
-      authDomain: "appgamesrepo.firebaseapp.com",
-      databaseURL: "https://appgamesrepo-default-rtdb.firebaseio.com",
-      projectId: "appgamesrepo",
-      storageBucket: "appgamesrepo.appspot.com",
-      messagingSenderId: "220298514248",
-      appId: "1:220298514248:web:f3193a6042d3e1a67a6d7d",
-      measurementId: "G-0YVBYHKG2D"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const form = document.getElementById('appForm');
-    const output = document.getElementById('appsList');
-    const repoSelect = document.getElementById('repoType');
-    const vipSettings = document.getElementById('vipSettings');
-    const tokenOutput = document.getElementById('tokenOutput');
-    let editKey = null;
-
-    repoSelect.addEventListener('change', () => {
-      vipSettings.style.display = repoSelect.value === 'vipApps' ? 'block' : 'none';
-      loadApps(); // обновить список при переключении репозитория
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const appData = {
-        name: form.name.value,
-        type: 1,
-        bundleID: form.bundleID.value,
-        bundleIdentifier: form.bundleID.value,
-        version: form.version.value,
-        size: parseInt(form.size.value),
-        down: form.downloadURL.value,
-        downloadURL: form.downloadURL.value,
-        developerName: "",
-        localizedDescription: form.description.value,
-        icon: form.iconURL.value,
-        iconURL: form.iconURL.value,
-        appUpdateTime: new Date().toISOString()
-      };
-
-      const repo = repoSelect.value;
-      const path = `${repo}/apps`;
-
-      if (editKey) {
-        await update(ref(db, `${path}/${editKey}`), appData);
-        editKey = null;
-      } else {
-        await push(ref(db, path), appData);
-      }
-
-      if (repo === 'vipApps') {
-        const token = Math.random().toString(36).substring(2, 12);
-        const expireDate = new Date(form.expireDate.value).toISOString();
-
-        await set(ref(db, `vipTokens/${token}`), {
-          createdAt: new Date().toISOString(),
-          expiresAt: expireDate
-        });
-
-        tokenOutput.innerHTML = `
-          <h3>✅ VIP токен создан</h3>
-          <p><b>🔑 Токен:</b> <code>${token}</code></p>
-          <p><b>📅 Истекает:</b> ${expireDate}</p>
-          <p><b>📥 GBox JSON:</b></p>
-          <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
-https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
-          </textarea>`;
-      } else {
-        tokenOutput.innerHTML = '';
-      }
-
-      form.reset();
-      vipSettings.style.display = 'none';
-      loadApps(); // обновляем после добавления
-    });
-
-    function loadApps() {
-      const repo = repoSelect.value;
-      const appsPath = `${repo}/apps`;
-
-      onValue(ref(db, appsPath), (snapshot) => {
-        output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
-        output.innerHTML += `<p><small>Путь: ${appsPath}</small></p>`;
-        output.innerHTML += `<hr>`;
-        snapshot.forEach(child => {
-          const app = child.val();
-          const appDiv = document.createElement('div');
-          appDiv.className = 'appCard';
-          appDiv.innerHTML = `
-            <img src="${app.iconURL}" width="48" height="48">
-            <strong>${app.name}</strong> (${app.version})<br>
-            <small>${app.bundleID}</small><br>
-            <button class="editBtn" data-id="${child.key}">✏️ Редактировать</button>
-            <button class="deleteBtn" onclick="deleteApp('${repo}', '${child.key}')">🗑️ Удалить</button>
-          `;
-          output.appendChild(appDiv);
-
-          appDiv.querySelector('.editBtn').addEventListener('click', () => {
-            form.name.value = app.name;
-            form.bundleID.value = app.bundleID;
-            form.version.value = app.version;
-            form.size.value = app.size;
-            form.downloadURL.value = app.downloadURL;
-            form.iconURL.value = app.iconURL;
-            form.description.value = app.localizedDescription;
-            editKey = child.key;
-          });
-        });
-      }, { onlyOnce: true });
-    }
-
-    function deleteApp(repo, key) {
-      remove(ref(db, `${repo}/apps/${key}`)).then(() => loadApps());
-    }
-
-    window.deleteApp = deleteApp;
-
-    // Load on start
-    loadApps();
-  </script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #ffcc00;
-    }
-    form, #appsList, #tokenOutput {
-      background: #222;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 600px;
-      margin: 0 auto 20px;
-    }
-    input, textarea, select {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-    }
-    textarea {
-      font-family: monospace;
-      resize: none;
-    }
-    button {
-      padding: 10px 20px;
-      background: #ffcc00;
-      color: #000;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-    .deleteBtn {
-      background: #e74c3c;
-      color: #fff;
-    }
-    .appCard {
-      background: #333;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .appCard img {
-      vertical-align: middle;
-      margin-right: 10px;
-    }
-    #vipSettings {
-      display: none;
-    }
-    code {
-      background: #000;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🛠 IpaVip Admin Panel</h1>
-  <form id="appForm">
-    <select id="repoType" name="repoType">
-      <option value="apps">Обычный репозиторий</option>
-      <option value="vipApps">VIP репозиторий (токен)</option>
-    </select>
-    <input type="text" id="name" name="name" placeholder="Название" required />
-    <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
-    <input type="text" id="version" name="version" placeholder="Версия" required />
-    <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
-    <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
-    <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку" required />
-    <textarea id="description" name="description" placeholder="Описание"></textarea>
+  <div id="loginScreen">
+    <h2>🔐 Введите пароль для доступа</h2>
+    <input type="password" id="passwordInput" placeholder="Введите пароль..." />
+    <button onclick="checkPassword()">Войти</button>
+  </div>
 
-    <div id="vipSettings">
-      <label>📅 Дата окончания токена:</label>
-      <input type="datetime-local" id="expireDate" name="expireDate" />
-    </div>
-
-    <button type="submit">💾 Добавить</button>
-  </form>
-
-  <div id="tokenOutput"></div>
-  <div id="appsList"></div>
+  <div id="mainPanel" style="display:none;">
+    <h1>🛠 IpaVip Admin Panel</h1>
+    <form id="appForm">
+      <select id="repoType" name="repoType">
+        <option value="apps">Обычный репозиторий</option>
+        <option value="vipApps">VIP репозиторий (токен)</option>
+      </select>
+      <input type="text" id="name" name="name" placeholder="Название" required />
+      <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
+      <input type="text" id="version" name="version" placeholder="Версия" required />
+      <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
+      <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
+      <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку" required />
+      <textarea id="description" name="description" placeholder="Описание"></textarea>
+      <div id="vipSettings" style="display:none;">
+        <label>📅 Дата окончания токена:</label>
+        <input type="datetime-local" id="expireDate" name="expireDate" />
+        <button type="button" id="generateToken">🎟 Сгенерировать токен</button>
+      </div>
+      <button type="submit">💾 Добавить</button>
+    </form>
+    <div id="tokenOutput"></div>
+    <input type="text" id="searchInput" placeholder="🔍 Поиск..." />
+    <div id="appsList"></div>
+  </div>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
