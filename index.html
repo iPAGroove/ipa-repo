@@ -1,49 +1,47 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>IpaVip Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="loginScreen" class="overlay">
-    <div class="login-box">
-      <h2>🔒 Введите пароль</h2>
-      <input type="password" id="passwordInput" placeholder="••••••••">
-      <button onclick="checkPassword()">Войти</button>
-      <p id="loginError" class="error-msg"></p>
-    </div>
-  </div>
-
   <h1>🛠 IpaVip Admin Panel</h1>
 
-  <form id="appForm">
+  <!-- 🔐 Репозиторий выбор и генерация токена -->
+  <div class="top-bar">
     <select id="repoType">
       <option value="apps">Обычный репозиторий</option>
       <option value="vipApps">VIP репозиторий (токен)</option>
     </select>
-    <input type="text" id="name" placeholder="Название" required />
-    <input type="text" id="bundleID" placeholder="Bundle ID" required />
-    <input type="text" id="version" placeholder="Версия" required />
-    <input type="number" id="size" placeholder="Размер (в байтах)" required />
-    <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
-    <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
-    <textarea id="description" placeholder="Описание"></textarea>
+    <button id="generateToken">🎟️ Создать VIP токен</button>
+    <input type="text" id="searchInput" placeholder="🔍 Поиск приложения...">
+  </div>
 
-    <div id="vipSettings" style="display:none;">
+  <!-- 📥 Форма добавления приложения -->
+  <form id="appForm">
+    <input type="text" id="name" name="name" placeholder="Название" required />
+    <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
+    <input type="text" id="version" name="version" placeholder="Версия" required />
+    <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
+    <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
+    <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку (GitHub)" required />
+    <textarea id="description" name="description" placeholder="Описание"></textarea>
+    <div id="vipSettings">
       <label>📅 Дата окончания токена:</label>
-      <input type="datetime-local" id="expireDate" />
+      <input type="datetime-local" id="expireDate" name="expireDate" />
     </div>
-
-    <button type="submit">💾 Добавить</button>
+    <button type="submit">💾 Добавить / Обновить</button>
   </form>
 
+  <!-- 🎫 Результат генерации токена -->
   <div id="tokenOutput"></div>
+
+  <!-- 📋 Список приложений -->
   <div id="appsList"></div>
 
-  <script src="admin.js"></script>
+  <!-- 🔧 Скрипт -->
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
