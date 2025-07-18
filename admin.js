@@ -1,3 +1,4 @@
+// Firebase SDK compat
 const firebaseConfig = {
   apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
   authDomain: "appgamesrepo.firebaseapp.com",
@@ -12,37 +13,65 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+const loginScreen = document.getElementById('authScreen');
+const mainPanel = document.getElementById('mainPanel');
+const loginBtn = document.getElementById('loginBtn');
+const passInput = document.getElementById('adminPass');
+
 const form = document.getElementById('appForm');
-const output = document.getElementById('appsList');
 const repoSelect = document.getElementById('repoType');
 const vipSettings = document.getElementById('vipSettings');
 const tokenOutput = document.getElementById('tokenOutput');
-const passwordInput = document.getElementById('passwordInput');
-const loginScreen = document.getElementById('loginScreen');
-const loginError = document.getElementById('loginError');
+const output = document.getElementById('appsList');
+const searchInput = document.getElementById('searchInput');
+const generateTokenBtn = document.getElementById('generateTokenBtn');
 let editKey = null;
+let appsCache = []; // Для поиска
 
-const PASSWORD = "001E5C1A36C0001E";
-
-function checkPassword() {
-  if (passwordInput.value === PASSWORD) {
-    loginScreen.style.display = "none";
+// Вход по паролю
+loginBtn.onclick = () => {
+  if (passInput.value === "001E5C1A36C0001E") {
+    loginScreen.classList.add('hidden');
+    mainPanel.classList.remove('hidden');
+    loadApps();
   } else {
-    loginError.innerText = "❌ Неверный пароль";
+    alert("❌ Неверный пароль");
   }
-}
+};
 
-repoSelect.addEventListener('change', () => {
+// Генерация отдельного VIP токена
+generateTokenBtn.onclick = async () => {
+  const expireDate = prompt("Введите дату окончания токена в формате YYYY-MM-DDTHH:mm");
+  if (!expireDate) return;
+
+  const token = Math.random().toString(36).substring(2, 12);
+  await firebase.database().ref(`vipTokens/${token}`).set({
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(expireDate).toISOString()
+  });
+
+  tokenOutput.innerHTML = `
+    <h3>✅ VIP токен создан</h3>
+    <p><b>🔑 Токен:</b> <code>${token}</code></p>
+    <p><b>📅 Истекает:</b> ${expireDate}</p>
+    <p><b>📥 GBox JSON:</b></p>
+    <textarea readonly onclick="this.select()">
+https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
+    </textarea>`;
+};
+
+repoSelect.onchange = () => {
   vipSettings.style.display = repoSelect.value === 'vipApps' ? 'block' : 'none';
   loadApps();
-});
+};
 
-form.addEventListener('submit', async (e) => {
+// Обработка формы добавления / редактирования
+form.onsubmit = async (e) => {
   e.preventDefault();
 
-  const iconRaw = form.iconURL.value.endsWith("?raw=true")
+  const iconUrl = form.iconURL.value.includes('?raw=true')
     ? form.iconURL.value
-    : form.iconURL.value + "?raw=true";
+    : form.iconURL.value + '?raw=true';
 
   const appData = {
     name: form.name.value,
@@ -55,8 +84,8 @@ form.addEventListener('submit', async (e) => {
     downloadURL: form.downloadURL.value,
     developerName: "",
     localizedDescription: form.description.value,
-    icon: iconRaw,
-    iconURL: iconRaw,
+    icon: iconUrl,
+    iconURL: iconUrl,
     appUpdateTime: new Date().toISOString()
   };
 
@@ -64,17 +93,16 @@ form.addEventListener('submit', async (e) => {
   const path = `${repo}/apps`;
 
   if (editKey) {
-    await db.ref(`${path}/${editKey}`).update(appData);
+    await firebase.database().ref(`${path}/${editKey}`).update(appData);
     editKey = null;
   } else {
-    await db.ref(path).push(appData);
+    await firebase.database().ref(path).push(appData);
   }
 
-  if (repo === 'vipApps') {
+  if (repo === 'vipApps' && form.expireDate.value) {
     const token = Math.random().toString(36).substring(2, 12);
-    const expireDate = new Date(document.getElementById('expireDate').value).toISOString();
-
-    await db.ref(`vipTokens/${token}`).set({
+    const expireDate = new Date(form.expireDate.value).toISOString();
+    await firebase.database().ref(`vipTokens/${token}`).set({
       createdAt: new Date().toISOString(),
       expiresAt: expireDate
     });
@@ -83,7 +111,8 @@ form.addEventListener('submit', async (e) => {
       <h3>✅ VIP токен создан</h3>
       <p><b>🔑 Токен:</b> <code>${token}</code></p>
       <p><b>📅 Истекает:</b> ${expireDate}</p>
-      <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
+      <p><b>📥 GBox JSON:</b></p>
+      <textarea readonly onclick="this.select()">
 https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
       </textarea>`;
   } else {
@@ -91,46 +120,69 @@ https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
   }
 
   form.reset();
-  vipSettings.style.display = 'none';
   loadApps();
-});
+};
 
+// Загрузка приложений
 function loadApps() {
   const repo = repoSelect.value;
-  const appsPath = `${repo}/apps`;
+  const path = `${repo}/apps`;
 
-  db.ref(appsPath).once('value', (snapshot) => {
-    output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
-    output.innerHTML += `<p><small>Путь: ${appsPath}</small></p><hr>`;
-    snapshot.forEach(child => {
-      const app = child.val();
-      const appDiv = document.createElement('div');
-      appDiv.className = 'appCard';
-      appDiv.innerHTML = `
-        <img src="${app.iconURL}" width="48" height="48">
+  firebase.database().ref(path).once('value', (snapshot) => {
+    output.innerHTML = '';
+    appsCache = [];
+
+    snapshot.forEach((child) => {
+      const data = child.val();
+      data.id = child.key;
+      appsCache.push(data);
+    });
+
+    renderApps(appsCache);
+  });
+}
+
+// Рендер списка
+function renderApps(list) {
+  output.innerHTML = '';
+  list.forEach(app => {
+    const appDiv = document.createElement('div');
+    appDiv.className = 'appCard';
+    appDiv.innerHTML = `
+      <img src="${app.iconURL}" />
+      <div>
         <strong>${app.name}</strong> (${app.version})<br>
         <small>${app.bundleID}</small><br>
         <button class="editBtn">✏️ Редактировать</button>
         <button class="deleteBtn">🗑️ Удалить</button>
-      `;
-      output.appendChild(appDiv);
+      </div>
+    `;
 
-      appDiv.querySelector('.editBtn').onclick = () => {
-        form.name.value = app.name;
-        form.bundleID.value = app.bundleID;
-        form.version.value = app.version;
-        form.size.value = app.size;
-        form.downloadURL.value = app.downloadURL;
-        form.iconURL.value = app.iconURL;
-        form.description.value = app.localizedDescription;
-        editKey = child.key;
-      };
+    appDiv.querySelector('.editBtn').onclick = () => {
+      form.name.value = app.name;
+      form.bundleID.value = app.bundleID;
+      form.version.value = app.version;
+      form.size.value = app.size;
+      form.downloadURL.value = app.downloadURL;
+      form.iconURL.value = app.iconURL.replace('?raw=true', '');
+      form.description.value = app.localizedDescription;
+      editKey = app.id;
+    };
 
-      appDiv.querySelector('.deleteBtn').onclick = () => {
-        db.ref(`${repo}/apps/${child.key}`).remove().then(() => loadApps());
-      };
-    });
+    appDiv.querySelector('.deleteBtn').onclick = async () => {
+      await firebase.database().ref(`${repoSelect.value}/apps/${app.id}`).remove();
+      loadApps();
+    };
+
+    output.appendChild(appDiv);
   });
 }
 
-loadApps();
+// Поиск
+searchInput.oninput = () => {
+  const q = searchInput.value.toLowerCase().trim();
+  const filtered = appsCache.filter(app =>
+    app.name.toLowerCase().includes(q) || app.bundleID.toLowerCase().includes(q)
+  );
+  renderApps(filtered);
+};
