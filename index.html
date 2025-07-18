@@ -1,47 +1,61 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>IpaVip Admin Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🛠 IpaVip Admin Panel</h1>
-
-  <!-- 🔐 Репозиторий выбор и генерация токена -->
-  <div class="top-bar">
-    <select id="repoType">
-      <option value="apps">Обычный репозиторий</option>
-      <option value="vipApps">VIP репозиторий (токен)</option>
-    </select>
-    <button id="generateToken">🎟️ Создать VIP токен</button>
-    <input type="text" id="searchInput" placeholder="🔍 Поиск приложения...">
+  <div id="auth-screen">
+    <h2>Введите пароль</h2>
+    <input type="password" id="passwordInput" placeholder="Пароль" />
+    <button id="loginButton">Войти</button>
+    <p id="authError" class="error-message"></p>
   </div>
 
-  <!-- 📥 Форма добавления приложения -->
-  <form id="appForm">
-    <input type="text" id="name" name="name" placeholder="Название" required />
-    <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
-    <input type="text" id="version" name="version" placeholder="Версия" required />
-    <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
-    <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
-    <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку (GitHub)" required />
-    <textarea id="description" name="description" placeholder="Описание"></textarea>
-    <div id="vipSettings">
-      <label>📅 Дата окончания токена:</label>
-      <input type="datetime-local" id="expireDate" name="expireDate" />
+  <div id="admin-panel" style="display:none;">
+    <h1>🛠 IpaVip Admin Panel</h1>
+
+    <div class="panel-section">
+      <h2>Добавить / Редактировать приложение</h2>
+      <form id="appForm">
+        <label for="repoType">Тип репозитория:</label>
+        <select id="repoType" name="repoType">
+          <option value="apps">Обычный репозиторий</option>
+          <option value="vipApps">VIP репозиторий</option>
+        </select>
+
+        <input type="text" id="name" name="name" placeholder="Название" required />
+        <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
+        <input type="text" id="version" name="version" placeholder="Версия" required />
+        <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
+        <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
+        <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку" required />
+        <textarea id="description" name="description" placeholder="Описание"></textarea>
+
+        <button type="submit">💾 Сохранить приложение</button>
+      </form>
     </div>
-    <button type="submit">💾 Добавить / Обновить</button>
-  </form>
 
-  <!-- 🎫 Результат генерации токена -->
-  <div id="tokenOutput"></div>
+    <div class="panel-section">
+      <h2>Генерация VIP токена</h2>
+      <div id="vipTokenGenerator">
+        <label for="vipExpireDate">Дата окончания токена:</label>
+        <input type="datetime-local" id="vipExpireDate" />
+        <button id="generateVipTokenButton">🔑 Сгенерировать VIP токен</button>
+        <div id="tokenOutput"></div>
+      </div>
+    </div>
 
-  <!-- 📋 Список приложений -->
-  <div id="appsList"></div>
+    <div class="panel-section">
+      <h2>Список приложений</h2>
+      <input type="text" id="appSearchInput" placeholder="Поиск по названию или Bundle ID..." />
+      <div id="appsList"></div>
+    </div>
+  </div>
 
-  <!-- 🔧 Скрипт -->
-  <script type="module" src="admin.js"></script>
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
