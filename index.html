@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <title>IpaVip Admin Panel</title>
@@ -27,7 +27,6 @@
     const repoSelect = document.getElementById('repoType');
     const vipSettings = document.getElementById('vipSettings');
     const tokenOutput = document.getElementById('tokenOutput');
-
     let editKey = null;
 
     repoSelect.addEventListener('change', () => {
@@ -54,16 +53,15 @@
       };
 
       const repo = repoSelect.value;
-      const path = repo + '/apps';
+      const path = `${repo}/apps`;
 
       if (editKey) {
-        await update(ref(db, `${repo}/apps/` + editKey), appData);
+        await update(ref(db, `${path}/${editKey}`), appData);
         editKey = null;
       } else {
         await push(ref(db, path), appData);
       }
 
-      // Генерация VIP токена
       if (repo === 'vipApps') {
         const token = Math.random().toString(36).substring(2, 12);
         const expireDate = new Date(form.expireDate.value).toISOString();
@@ -74,10 +72,13 @@
         });
 
         tokenOutput.innerHTML = `
-          <p><strong>🔑 VIP Token:</strong> ${token}</p>
-          <p><strong>⏳ Действует до:</strong> ${expireDate}</p>
-          <p><strong>📥 GBox ссылка:</strong> <a href="https://api-u3vwde53ja-uc.a.run.app/vipRepo?token=${token}" target="_blank">https://api.../vipRepo?token=${token}</a></p>
-        `;
+          <h3>✅ VIP токен создан</h3>
+          <p><b>🔑 Токен:</b> <code>${token}</code></p>
+          <p><b>📅 Истекает:</b> ${expireDate}</p>
+          <p><b>📥 GBox JSON:</b><br>
+          <a href="https://api-u3vwde53ja-uc.a.run.app/vipRepo?token=${token}" target="_blank">
+            https://api.../vipRepo?token=${token}
+          </a></p>`;
       } else {
         tokenOutput.innerHTML = '';
       }
@@ -86,9 +87,9 @@
       vipSettings.style.display = 'none';
     });
 
-    // Загрузка существующих обычных приложений (по умолчанию)
+    // Загружаем только обычный список (можно расширить для vip)
     onValue(ref(db, 'apps'), (snapshot) => {
-      output.innerHTML = '<h2>Список обычных приложений</h2>';
+      output.innerHTML = '<h2>📱 Обычные приложения</h2>';
       snapshot.forEach(child => {
         const app = child.val();
         const appDiv = document.createElement('div');
@@ -97,8 +98,8 @@
           <img src="${app.iconURL}" width="48" height="48">
           <strong>${app.name}</strong> (${app.version})<br>
           <small>${app.bundleID}</small><br>
-          <button class="editBtn" data-id="${child.key}">Редактировать</button>
-          <button class="deleteBtn" onclick="deleteApp('${child.key}')">Удалить</button>
+          <button class="editBtn" data-id="${child.key}">✏️ Редактировать</button>
+          <button class="deleteBtn" onclick="deleteApp('${child.key}')">🗑️ Удалить</button>
         `;
         output.appendChild(appDiv);
 
@@ -115,9 +116,9 @@
       });
     });
 
-    window.deleteApp = function(key) {
+    window.deleteApp = function (key) {
       remove(ref(db, 'apps/' + key));
-    }
+    };
   </script>
   <style>
     body {
@@ -170,6 +171,11 @@
     #vipSettings {
       display: none;
     }
+    code {
+      background: #000;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -188,11 +194,11 @@
     <textarea id="description" placeholder="Описание"></textarea>
 
     <div id="vipSettings">
-      <label>Срок действия токена:</label>
-      <input type="datetime-local" id="expireDate" required />
+      <label>📅 Дата окончания токена:</label>
+      <input type="datetime-local" id="expireDate" />
     </div>
 
-    <button type="submit">Добавить</button>
+    <button type="submit">💾 Добавить</button>
   </form>
 
   <div id="tokenOutput"></div>
