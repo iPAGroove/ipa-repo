@@ -1,38 +1,46 @@
 {
-    "version": "1.0",
-    "sourceName": "iPAGroove Apps",
-    "sourceAuthor": "iPAGroove Team",
-    "sourceExportEnable": true,
-    "sourceLinkTitle": "Веб-страница",
-    "sourceLinkUrl": "https://ipagroove.github.io/ipa-repo/",
-    "sourceImage": "https://ipagroove.github.io/ipa-repo/icons/repo_icon.png",
-    "sourceUpdateTime": "2025-07-18T14:05:00+0300", 
-    "sourceDescription": "Официальный репозиторий iPAGroove. Здесь вы найдете наши приложения.",
-    "appCategories": [
-        "Игры",
-        "Инструменты"
-    ],
-    "appRepositories": [
-        {
-            "appType": "SELF_SIGN",
-            "appCateIndex": 0,
-            "appUpdateTime": "2025-07-18T14:05:00+0300",
-            "appName": "Airport City",
-            "appVersion": "8.39.01",
-            "appImage": "https://ipagroove.github.io/ipa-repo/icons/airportcity_icon.png", 
-            "appPackage": "itms-services://?action=download-manifest&url=https://ipagroove.github.io/ipa-repo/plists/airportcity.plist",
-            "appDescription": "Увлекательная градостроительная стратегия, где вы можете построить свой собственный аэропорт и город мечты."
-        },
-        {
-            "appType": "SELF_SIGN",
-            "appCateIndex": 0,
-            "appUpdateTime": "2025-07-18T14:05:00+0300",
-            "appName": "Angry Birds 2",
-            "appVersion": "4.0.2",
-            "appImage": "https://ipagroove.github.io/ipa-repo/icons/angrybirds2_icon.png", 
-            "appPackage": "itms-services://?action=download-manifest&url=https://ipagroove.github.io/ipa-repo/plists/angrybirds2.plist",
-            "appDescription": "Продолжение культовой игры про злых птичек. Приготовьтесь к новым приключениям и разрушениям!"
-        }
-        // Добавьте сюда другие приложения по аналогии, используя ту же структуру
-    ]
+  "name": "iPAGroove Repo",
+  "identifier": "org.ipagroove.repo",
+  "sourceURL": "https://ipagroove.github.io/ipa-repo/",
+  "iconURL": "https://ipagroove.github.io/ipa-repo/icons/repo_icon.png",
+  "website": "https://ipagroove.github.io/ipa-repo/",
+  "ipawebsite": "https://ipagroove.github.io/ipa-repo/",
+  "subtitle": "IPA LIBRARY by iPAGroove",
+  "META": {
+    "repoName": "iPAGroove Repo",
+    "repoIcon": "https://ipagroove.github.io/ipa-repo/icons/repo_icon.png"
+  },
+  "apps": [
+    {
+      "name": "Airport City",
+      "type": 1,
+      "bundleID": "com.yourcompany.airportcity", // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ!
+      "bundleIdentifier": "com.yourcompany.airportcity", // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ!
+      "version": "8.39.01",
+      "size": 1751525738, // Укажите реальный размер IPA в байтах
+      "down": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Airport+City+_8.39.01_1751525738.ipa",
+      "downloadURL": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Airport+City+_8.39.01_1751525738.ipa",
+      "developerName": "Playrix", // Или ваше название
+      "localizedDescription": "Увлекательная градостроительная стратегия, где вы можете построить свой собственный аэропорт и город мечты.",
+      "icon": "https://ipagroove.github.io/ipa-repo/icons/airportcity_icon.png",
+      "iconURL": "https://ipagroove.github.io/ipa-repo/icons/airportcity_icon.png",
+      "appUpdateTime": "2025-07-18T15:00:00+0300" // Текущая дата и время
+    },
+    {
+      "name": "Angry Birds 2",
+      "type": 1,
+      "bundleID": "com.rovio.angrybirds2", // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ!
+      "bundleIdentifier": "com.rovio.angrybirds2", // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ!
+      "version": "4.0.2",
+      "size": 1751526322, // Укажите реальный размер IPA в байтах
+      "down": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Angry+Birds+2+_4.0.2_1751526322.ipa",
+      "downloadURL": "https://vhistoretg.s3.eu-north-1.amazonaws.com/Angry+Birds+2+_4.0.2_1751526322.ipa",
+      "developerName": "Rovio Entertainment",
+      "localizedDescription": "Продолжение культовой игры про злых птичек. Приготовьтесь к новым приключениям и разрушениям!",
+      "icon": "https://ipagroove.github.io/ipa-repo/icons/angrybirds2_icon.png",
+      "iconURL": "https://ipagroove.github.io/ipa-repo/icons/angrybirds2_icon.png",
+      "appUpdateTime": "2025-07-18T15:00:00+0300" // Текущая дата и время
+    }
+    // Добавьте сюда другие приложения по аналогии
+  ]
 }
