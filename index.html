@@ -75,10 +75,10 @@
           <h3>✅ VIP токен создан</h3>
           <p><b>🔑 Токен:</b> <code>${token}</code></p>
           <p><b>📅 Истекает:</b> ${expireDate}</p>
-          <p><b>📥 GBox JSON:</b><br>
-          <a href="https://api-u3vwde53ja-uc.a.run.app/vipRepo?token=${token}" target="_blank">
-            https://api.../vipRepo?token=${token}
-          </a></p>`;
+          <p><b>📥 GBox JSON:</b></p>
+          <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
+https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
+          </textarea>`;
       } else {
         tokenOutput.innerHTML = '';
       }
@@ -143,6 +143,10 @@
       padding: 10px;
       border: none;
       border-radius: 5px;
+    }
+    textarea {
+      font-family: monospace;
+      resize: none;
     }
     button {
       padding: 10px 20px;
