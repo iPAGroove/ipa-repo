@@ -14,11 +14,9 @@ const firebaseConfig = {
     measurementId: "G-0YVBYHKG2D"
 };
 
-// Инициализация Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Получение элементов DOM
 const form = document.getElementById('appForm');
 const output = document.getElementById('appsList');
 const repoSelect = document.getElementById('repoType');
@@ -27,19 +25,16 @@ const vipExpireDateInput = document.getElementById('vipExpireDate');
 const generateVipTokenButton = document.getElementById('generateVipTokenButton');
 const appSearchInput = document.getElementById('appSearchInput');
 
-let editKey = null; // Ключ для редактирования приложения
-let currentApps = []; // Для хранения текущего списка приложений и их фильтрации
+let editKey = null;
+let currentApps = [];
 
-// --- Функции для работы с приложениями ---
-
-// Загрузка приложений из Firebase
 function loadApps() {
     const repo = repoSelect.value;
     const appsPath = `${repo}/apps`;
 
     onValue(ref(db, appsPath), (snapshot) => {
-        output.innerHTML = ''; // Очищаем список перед загрузкой
-        currentApps = []; // Очищаем массив перед заполнением
+        output.innerHTML = '';
+        currentApps = [];
 
         if (!snapshot.exists()) {
             output.innerHTML = `<p>Нет приложений в этом репозитории.</p>`;
@@ -50,14 +45,15 @@ function loadApps() {
             const appData = child.val();
             currentApps.push({ key: child.key, ...appData });
         });
-        filterAndDisplayApps(); // Отображаем и фильтруем приложения
+
+        currentApps.sort((a, b) => new Date(b.appUpdateTime || 0) - new Date(a.appUpdateTime || 0));
+        filterAndDisplayApps();
     }, (error) => {
         console.error("Ошибка загрузки приложений:", error);
         output.innerHTML = `<p class="error-message">Ошибка загрузки данных: ${error.message}</p>`;
     });
 }
 
-// Отображение приложений с учетом фильтрации
 function filterAndDisplayApps() {
     output.innerHTML = `<h2>📱 ${repoSelect.value === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
     output.innerHTML += `<p><small>Путь: ${repoSelect.value}/apps</small></p>`;
@@ -90,7 +86,6 @@ function filterAndDisplayApps() {
         `;
         output.appendChild(appDiv);
 
-        // Добавляем обработчики событий для кнопок редактирования и удаления
         appDiv.querySelector('.editBtn').addEventListener('click', () => {
             editApp(app.key, app);
         });
@@ -104,63 +99,53 @@ function filterAndDisplayApps() {
     });
 }
 
-// Функция для редактирования приложения
 function editApp(key, app) {
-    // Заполняем форму данными приложения
     form.name.value = app.name;
     form.bundleID.value = app.bundleID;
     form.version.value = app.version;
     form.size.value = app.size;
     form.downloadURL.value = app.downloadURL;
-    // Добавляем ?raw=true при редактировании, если его нет
     form.iconURL.value = app.iconURL.endsWith('?raw=true') ? app.iconURL : app.iconURL + '?raw=true';
     form.description.value = app.localizedDescription;
-    editKey = key; // Устанавливаем ключ для режима редактирования
-    // Прокручиваем к форме
+    editKey = key;
     form.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Функция для удаления приложения
 async function deleteApp(repo, key) {
     try {
         await remove(ref(db, `${repo}/apps/${key}`));
         alert('Приложение успешно удалено!');
-        loadApps(); // Обновляем список после удаления
+        loadApps();
     } catch (error) {
         console.error("Ошибка удаления приложения:", error);
         alert(`Ошибка удаления: ${error.message}`);
     }
 }
 
-// --- Обработчики событий ---
-
-// Переключение репозитория
 repoSelect.addEventListener('change', () => {
     loadApps();
 });
 
-// Отправка формы добавления/редактирования приложения
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const iconUrlValue = form.iconURL.value;
-    // Автоматическое добавление ?raw=true для ссылок на иконки GitHub
     const finalIconURL = iconUrlValue.includes('github.com') && !iconUrlValue.endsWith('?raw=true')
         ? iconUrlValue + '?raw=true'
         : iconUrlValue;
 
     const appData = {
         name: form.name.value,
-        type: 1, // Или другое значение по умолчанию
+        type: 1,
         bundleID: form.bundleID.value,
-        bundleIdentifier: form.bundleID.value, // Дублирование для совместимости, если нужно
+        bundleIdentifier: form.bundleID.value,
         version: form.version.value,
         size: parseInt(form.size.value),
-        down: form.downloadURL.value, // Дублирование для совместимости
+        down: form.downloadURL.value,
         downloadURL: form.downloadURL.value,
-        developerName: "", // По умолчанию пусто
+        developerName: "",
         localizedDescription: form.description.value,
-        icon: finalIconURL, // Дублирование для совместимости
+        icon: finalIconURL,
         iconURL: finalIconURL,
         appUpdateTime: new Date().toISOString()
     };
@@ -172,20 +157,19 @@ form.addEventListener('submit', async (e) => {
         if (editKey) {
             await update(ref(db, `${path}/${editKey}`), appData);
             alert('Приложение успешно обновлено!');
-            editKey = null; // Сброс режима редактирования
+            editKey = null;
         } else {
             await push(ref(db, path), appData);
             alert('Приложение успешно добавлено!');
         }
-        form.reset(); // Очищаем форму
-        loadApps(); // Обновляем список приложений
+        form.reset();
+        loadApps();
     } catch (error) {
         console.error("Ошибка сохранения приложения:", error);
         alert(`Ошибка сохранения: ${error.message}`);
     }
 });
 
-// Генерация VIP токена
 generateVipTokenButton.addEventListener('click', async () => {
     const expireDateValue = vipExpireDateInput.value;
     if (!expireDateValue) {
@@ -193,7 +177,7 @@ generateVipTokenButton.addEventListener('click', async () => {
         return;
     }
 
-    const token = Math.random().toString(36).substring(2, 12); // Случайный 10-символьный токен
+    const token = Math.random().toString(36).substring(2, 12);
     const expireDate = new Date(expireDateValue).toISOString();
 
     try {
@@ -218,17 +202,13 @@ https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
     }
 });
 
-// Поиск по списку приложений
 appSearchInput.addEventListener('input', filterAndDisplayApps);
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     loadApps();
-    // Устанавливаем текущую дату + 1 месяц как значение по умолчанию для VIP токена
     const now = new Date();
     now.setMonth(now.getMonth() + 1);
     vipExpireDateInput.value = now.toISOString().substring(0, 16);
 });
 
-// Добавляем глобальный доступ к deleteApp, если он используется в HTML напрямую (хотя лучше через события)
 window.deleteApp = deleteApp;
