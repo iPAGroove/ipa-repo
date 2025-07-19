@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
- "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" 
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>PayloadContent</key>
   <array>
     <dict>
       <key>PayloadDescription</key>
-      <string>UDID Extractor</string>
+      <string>UDID Collection</string>
       <key>PayloadDisplayName</key>
       <string>Get UDID</string>
       <key>PayloadIdentifier</key>
@@ -17,36 +17,23 @@
       <key>PayloadType</key>
       <string>Profile Service</string>
       <key>PayloadUUID</key>
-      <string>f31a5bc0-0d6a-4be7-8bde-udid00000001</string>
+      <string>11111111-2222-3333-4444-555555555555</string>
       <key>PayloadVersion</key>
       <integer>1</integer>
-      <key>PayloadContent</key>
-      <dict>
-        <key>URL</key>
-        <string>https://api-u3vwde53ja-uc.a.run.app/receive-udid</string>
-        <key>DeviceAttributes</key>
-        <array>
-          <string>UDID</string>
-          <string>IMEI</string>
-          <string>ICCID</string>
-          <string>VERSION</string>
-          <string>PRODUCT</string>
-        </array>
-      </dict>
+      <key>URL</key>
+      <string>https://udid-redirect.ipagroove.repl.co/receive-udid</string>
     </dict>
   </array>
   <key>PayloadDisplayName</key>
-  <string>iPA Groove UDID</string>
+  <string>Install this profile</string>
   <key>PayloadIdentifier</key>
-  <string>com.ipagroove.udid.profile</string>
-  <key>PayloadOrganization</key>
-  <string>iPA Groove</string>
+  <string>com.ipagroove.profile</string>
   <key>PayloadRemovalDisallowed</key>
   <false/>
   <key>PayloadType</key>
   <string>Configuration</string>
   <key>PayloadUUID</key>
-  <string>f31a5bc0-0d6a-4be7-8bde-udid00000002</string>
+  <string>AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE</string>
   <key>PayloadVersion</key>
   <integer>1</integer>
 </dict>
