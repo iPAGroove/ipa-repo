@@ -37,7 +37,7 @@ let currentApps = [];
 
 function loadApps() {
   const repo = repoSelect.value;
-  const appsPath = `${repo}/apps`;
+  const appsPath = `${repo}`; // ✅ Исправлено: убрали /apps
 
   onValue(ref(db, appsPath), (snapshot) => {
     output.innerHTML = "";
@@ -59,8 +59,9 @@ function loadApps() {
 }
 
 function filterAndDisplayApps() {
-  output.innerHTML = `<h2>📱 ${repoSelect.value === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
-  output.innerHTML += `<p><small>Путь: ${repoSelect.value}/apps</small></p><hr>`;
+  const repo = repoSelect.value;
+  output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
+  output.innerHTML += `<p><small>Путь: ${repo}</small></p><hr>`;
 
   const searchTerm = appSearchInput.value.toLowerCase();
   const filteredApps = currentApps.filter(app =>
@@ -83,17 +84,16 @@ function filterAndDisplayApps() {
       </div>
       <div class="app-actions">
         <button class="editBtn" data-id="${app.key}">✏️ Редактировать</button>
-        <button class="deleteBtn" data-repo="${repoSelect.value}" data-id="${app.key}">🗑️ Удалить</button>
+        <button class="deleteBtn" data-repo="${repo}" data-id="${app.key}">🗑️ Удалить</button>
       </div>
     `;
     output.appendChild(appDiv);
 
     appDiv.querySelector(".editBtn").addEventListener("click", () => editApp(app.key, app));
     appDiv.querySelector(".deleteBtn").addEventListener("click", async (e) => {
-      const repo = e.target.dataset.repo;
       const id = e.target.dataset.id;
       if (confirm(`Удалить приложение "${app.name}"?`)) {
-        await remove(ref(db, `${repo}/apps/${id}`));
+        await remove(ref(db, `${repo}/${id}`));
         loadApps();
       }
     });
@@ -136,7 +136,7 @@ form.addEventListener("submit", async (e) => {
   };
 
   const repo = repoSelect.value;
-  const path = `${repo}/apps`;
+  const path = `${repo}`;
 
   if (editKey) {
     await update(ref(db, `${path}/${editKey}`), appData);
