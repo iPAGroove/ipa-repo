@@ -1,13 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getDatabase,
-  ref,
-  push,
-  onValue,
-  remove,
-  update,
-  set
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRmKbekcv6OW8oaMsHPlc8WvfIWnyFAI0",
@@ -30,17 +22,16 @@ const tokenOutput = document.getElementById("tokenOutput");
 const vipExpireDateInput = document.getElementById("vipExpireDate");
 const generateVipTokenButton = document.getElementById("generateVipTokenButton");
 const appSearchInput = document.getElementById("appSearchInput");
-const pendingTokensList = document.getElementById("pendingTokensList");
 
 let editKey = null;
 let currentApps = [];
 
 function loadApps() {
   const repo = repoSelect.value;
-  const appsPath = `${repo}`; // ✅ Исправлено: убрали /apps
+  const appsPath = `${repo}/apps`;
 
   onValue(ref(db, appsPath), (snapshot) => {
-    output.innerHTML = "";
+    output.innerHTML = '';
     currentApps = [];
 
     if (!snapshot.exists()) {
@@ -48,24 +39,27 @@ function loadApps() {
       return;
     }
 
-    snapshot.forEach((child) => {
+    snapshot.forEach(child => {
       const appData = child.val();
       currentApps.push({ key: child.key, ...appData });
     });
 
     currentApps.sort((a, b) => new Date(b.appUpdateTime || 0) - new Date(a.appUpdateTime || 0));
     filterAndDisplayApps();
+  }, (error) => {
+    console.error("Ошибка загрузки приложений:", error);
+    output.innerHTML = `<p class="error-message">Ошибка загрузки данных: ${error.message}</p>`;
   });
 }
 
 function filterAndDisplayApps() {
-  const repo = repoSelect.value;
-  output.innerHTML = `<h2>📱 ${repo === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
-  output.innerHTML += `<p><small>Путь: ${repo}</small></p><hr>`;
+  output.innerHTML = `<h2>📱 ${repoSelect.value === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
+  output.innerHTML += `<p><small>Путь: ${repoSelect.value}/apps</small></p><hr>`;
 
   const searchTerm = appSearchInput.value.toLowerCase();
   const filteredApps = currentApps.filter(app =>
-    app.name.toLowerCase().includes(searchTerm) || app.bundleID.toLowerCase().includes(searchTerm)
+    app.name.toLowerCase().includes(searchTerm) ||
+    app.bundleID.toLowerCase().includes(searchTerm)
   );
 
   if (filteredApps.length === 0) {
@@ -74,8 +68,8 @@ function filterAndDisplayApps() {
   }
 
   filteredApps.forEach(app => {
-    const appDiv = document.createElement("div");
-    appDiv.className = "appCard";
+    const appDiv = document.createElement('div');
+    appDiv.className = 'appCard';
     appDiv.innerHTML = `
       <img src="${app.iconURL || 'placeholder.png'}" alt="${app.name} icon">
       <div class="app-info">
@@ -84,16 +78,17 @@ function filterAndDisplayApps() {
       </div>
       <div class="app-actions">
         <button class="editBtn" data-id="${app.key}">✏️ Редактировать</button>
-        <button class="deleteBtn" data-repo="${repo}" data-id="${app.key}">🗑️ Удалить</button>
+        <button class="deleteBtn" data-repo="${repoSelect.value}" data-id="${app.key}">🗑️ Удалить</button>
       </div>
     `;
     output.appendChild(appDiv);
 
-    appDiv.querySelector(".editBtn").addEventListener("click", () => editApp(app.key, app));
-    appDiv.querySelector(".deleteBtn").addEventListener("click", async (e) => {
+    appDiv.querySelector('.editBtn').addEventListener('click', () => editApp(app.key, app));
+    appDiv.querySelector('.deleteBtn').addEventListener('click', async (e) => {
+      const repo = e.target.dataset.repo;
       const id = e.target.dataset.id;
       if (confirm(`Удалить приложение "${app.name}"?`)) {
-        await remove(ref(db, `${repo}/${id}`));
+        await remove(ref(db, `${repo}/apps/${id}`));
         loadApps();
       }
     });
@@ -109,15 +104,16 @@ function editApp(key, app) {
   form.iconURL.value = app.iconURL.endsWith('?raw=true') ? app.iconURL : app.iconURL + '?raw=true';
   form.description.value = app.localizedDescription;
   editKey = key;
-  form.scrollIntoView({ behavior: "smooth" });
+  form.scrollIntoView({ behavior: 'smooth' });
 }
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const finalIconURL = form.iconURL.value.includes("github.com") && !form.iconURL.value.endsWith("?raw=true")
-    ? form.iconURL.value + "?raw=true"
-    : form.iconURL.value;
+  const iconUrlValue = form.iconURL.value;
+  const finalIconURL = iconUrlValue.includes('github.com') && !iconUrlValue.endsWith('?raw=true')
+    ? iconUrlValue + '?raw=true'
+    : iconUrlValue;
 
   const appData = {
     name: form.name.value,
@@ -136,17 +132,23 @@ form.addEventListener("submit", async (e) => {
   };
 
   const repo = repoSelect.value;
-  const path = `${repo}`;
+  const path = `${repo}/apps`;
 
-  if (editKey) {
-    await update(ref(db, `${path}/${editKey}`), appData);
-    editKey = null;
-  } else {
-    await push(ref(db, path), appData);
+  try {
+    if (editKey) {
+      await update(ref(db, `${path}/${editKey}`), appData);
+      alert('Приложение успешно обновлено!');
+      editKey = null;
+    } else {
+      await push(ref(db, path), appData);
+      alert('Приложение успешно добавлено!');
+    }
+    form.reset();
+    loadApps();
+  } catch (error) {
+    console.error("Ошибка сохранения приложения:", error);
+    alert(`Ошибка сохранения: ${error.message}`);
   }
-
-  form.reset();
-  loadApps();
 });
 
 generateVipTokenButton.addEventListener("click", async () => {
@@ -156,78 +158,39 @@ generateVipTokenButton.addEventListener("click", async () => {
   const token = Math.random().toString(36).substring(2, 12);
   const expireDate = new Date(expireDateValue).toISOString();
 
-  await set(ref(db, `vipTokens/${token}`), {
-    createdAt: new Date().toISOString(),
-    expiresAt: expireDate,
-    approved: false,
-    used: false
-  });
-
-  tokenOutput.innerHTML = `
-    <h3>✅ VIP токен создан</h3>
-    <p><b>🔑 Токен:</b> <code>${token}</code></p>
-    <p><b>📅 Истекает:</b> ${new Date(expireDate).toLocaleString()}</p>
-    <p><b>📥 GBox JSON:</b></p>
-    <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
-https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
-    </textarea>
-    <p><small>Скопируйте токен или полную ссылку для GBox JSON.</small></p>
-  `;
-
-  loadPendingTokens();
-});
-
-function loadPendingTokens() {
-  onValue(ref(db, "vipTokens"), (snapshot) => {
-    pendingTokensList.innerHTML = "";
-
-    snapshot.forEach((childSnap) => {
-      const token = childSnap.key;
-      const data = childSnap.val();
-      if (!data.approved) {
-        const el = document.createElement("div");
-        el.className = "appCard";
-        el.innerHTML = `
-          <div class="app-info">
-            <strong>🔑 ${token}</strong>
-            <br><small>Истекает: ${new Date(data.expiresAt).toLocaleString()}</small>
-          </div>
-          <div class="app-actions">
-            <button class="approveBtn">✅ Подтвердить</button>
-            <button class="deleteBtn">🗑️ Удалить</button>
-          </div>
-        `;
-
-        el.querySelector(".approveBtn").addEventListener("click", async () => {
-          await update(ref(db, `vipTokens/${token}`), { approved: true });
-          loadPendingTokens();
-        });
-
-        el.querySelector(".deleteBtn").addEventListener("click", async () => {
-          if (confirm(`Удалить токен ${token}?`)) {
-            await remove(ref(db, `vipTokens/${token}`));
-            loadPendingTokens();
-          }
-        });
-
-        pendingTokensList.appendChild(el);
-      }
+  try {
+    await set(ref(db, `vipTokens/${token}`), {
+      createdAt: new Date().toISOString(),
+      expiresAt: expireDate,
+      approved: false,
+      used: false
     });
 
-    if (pendingTokensList.innerHTML === "") {
-      pendingTokensList.innerHTML = "<p>Нет ожидающих токенов.</p>";
-    }
-  });
-}
+    tokenOutput.innerHTML = `
+      <h3>✅ VIP токен создан</h3>
+      <p><b>🔑 Токен:</b> <code>${token}</code></p>
+      <p><b>📅 Истекает:</b> ${new Date(expireDate).toLocaleString()}</p>
+      <p><b>📥 GBox JSON:</b></p>
+      <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
+https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
+      </textarea>
+      <p><small>Скопируйте токен или полную ссылку для GBox JSON.</small></p>
+    `;
+  } catch (error) {
+    console.error("Ошибка генерации VIP токена:", error);
+    tokenOutput.innerHTML = `<p class="error-message">Ошибка генерации токена: ${error.message}</p>`;
+  }
+});
 
-appSearchInput.addEventListener("input", filterAndDisplayApps);
+repoSelect.addEventListener('change', () => {
+  loadApps();
+});
+
+appSearchInput.addEventListener('input', filterAndDisplayApps);
 
 document.addEventListener("DOMContentLoaded", () => {
   loadApps();
-  loadPendingTokens();
   const now = new Date();
   now.setMonth(now.getMonth() + 1);
   vipExpireDateInput.value = now.toISOString().substring(0, 16);
 });
-
-window.deleteApp = deleteApp;
