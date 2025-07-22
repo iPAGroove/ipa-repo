@@ -26,13 +26,13 @@
           <option value="vipApps">VIP репозиторий</option>
         </select>
 
-        <input type="text" id="name" name="name" placeholder="Название" required />
-        <input type="text" id="bundleID" name="bundleID" placeholder="Bundle ID" required />
-        <input type="text" id="version" name="version" placeholder="Версия" required />
-        <input type="number" id="size" name="size" placeholder="Размер (в байтах)" required />
-        <input type="text" id="downloadURL" name="downloadURL" placeholder="Ссылка на IPA" required />
-        <input type="text" id="iconURL" name="iconURL" placeholder="Ссылка на иконку" required />
-        <textarea id="description" name="description" placeholder="Описание"></textarea>
+        <input type="text" id="name" placeholder="Название" required />
+        <input type="text" id="bundleID" placeholder="Bundle ID" required />
+        <input type="text" id="version" placeholder="Версия" required />
+        <input type="number" id="size" placeholder="Размер (в байтах)" required />
+        <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
+        <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
+        <textarea id="description" placeholder="Описание"></textarea>
 
         <button type="submit">💾 Сохранить приложение</button>
       </form>
@@ -46,6 +46,11 @@
         <button id="generateVipTokenButton">🔑 Сгенерировать VIP токен</button>
         <div id="tokenOutput"></div>
       </div>
+    </div>
+
+    <div class="panel-section">
+      <h2>🕒 Токены, ожидающие подтверждения</h2>
+      <div id="pendingTokensList"></div>
     </div>
 
     <div class="panel-section">
