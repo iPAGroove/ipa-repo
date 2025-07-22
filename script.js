@@ -22,6 +22,7 @@ const tokenOutput = document.getElementById("tokenOutput");
 const vipExpireDateInput = document.getElementById("vipExpireDate");
 const generateVipTokenButton = document.getElementById("generateVipTokenButton");
 const appSearchInput = document.getElementById("appSearchInput");
+const pendingTokensList = document.getElementById("pendingTokensList");
 
 let editKey = null;
 let currentApps = [];
@@ -182,14 +183,63 @@ https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
   }
 });
 
-repoSelect.addEventListener('change', () => {
-  loadApps();
-});
+// ✅ Загрузка токенов на подтверждение
+function loadPendingTokens() {
+  onValue(ref(db, "vipTokens"), (snapshot) => {
+    pendingTokensList.innerHTML = "";
 
+    if (!snapshot.exists()) {
+      pendingTokensList.innerHTML = "<p>Нет токенов в ожидании.</p>";
+      return;
+    }
+
+    snapshot.forEach((child) => {
+      const token = child.key;
+      const data = child.val();
+
+      const expired = new Date(data.expiresAt) < new Date();
+      const approved = data.approved === true;
+      const used = data.used === true;
+
+      if (!approved && !expired && !used) {
+        const item = document.createElement("div");
+        item.className = "appCard";
+        item.innerHTML = `
+          <div class="app-info">
+            <strong>Токен:</strong> <code>${token}</code><br>
+            <small>Истекает: ${new Date(data.expiresAt).toLocaleString()}</small>
+          </div>
+          <div class="app-actions">
+            <button class="approveBtn">✅ Подтвердить</button>
+            <button class="deleteBtn">🗑 Удалить</button>
+          </div>
+        `;
+
+        item.querySelector(".approveBtn").addEventListener("click", async () => {
+          await update(ref(db, `vipTokens/${token}`), { approved: true });
+          alert("Токен подтверждён ✅");
+          loadPendingTokens();
+        });
+
+        item.querySelector(".deleteBtn").addEventListener("click", async () => {
+          if (confirm("Удалить этот токен?")) {
+            await remove(ref(db, `vipTokens/${token}`));
+            loadPendingTokens();
+          }
+        });
+
+        pendingTokensList.appendChild(item);
+      }
+    });
+  });
+}
+
+repoSelect.addEventListener('change', loadApps);
 appSearchInput.addEventListener('input', filterAndDisplayApps);
 
 document.addEventListener("DOMContentLoaded", () => {
   loadApps();
+  loadPendingTokens();
   const now = new Date();
   now.setMonth(now.getMonth() + 1);
   vipExpireDateInput.value = now.toISOString().substring(0, 16);
