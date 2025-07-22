@@ -190,9 +190,89 @@ button:active {
   font-weight: bold;
 }
 
+/* Стили для #admin-panel и навигации */
 #admin-panel {
   width: 100%;
   max-width: 800px;
+  display: flex; /* Используем flexbox */
+  flex-direction: column; /* Элементы будут располагаться в колонку */
+  min-height: calc(100vh - 40px); /* Чтобы панель занимала почти всю высоту */
+}
+
+#content-area {
+  flex-grow: 1; /* Позволяет области контента занять все доступное пространство */
+  margin-bottom: 20px; /* Отступ перед панелью навигации */
+}
+
+#navigation-panel {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  background: #2e2e4a;
+  border-top: 1px solid #4a4a6a;
+  border-radius: 10px;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 800px; /* Должен соответствовать max-width #admin-panel */
+  margin: 0 auto; /* Центрируем панель навигации */
+  position: sticky; /* Делаем панель липкой */
+  bottom: 0; /* Прилипает к низу */
+  z-index: 1000; /* Чтобы была поверх другого контента */
+}
+
+.nav-button {
+  flex-grow: 1;
+  text-align: center;
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  padding: 15px 0;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.nav-button:hover {
+  background-color: #3e3e5a;
+}
+
+.nav-button.active {
+  background-color: #0f4c75;
+  color: #ffffff;
+}
+
+.nav-button.active:hover {
+  background-color: #0f4c75; /* Не меняем цвет при наведении, если активна */
+}
+
+.nav-button i {
+  font-size: 1.2em;
+}
+
+/* Стили для списков токенов */
+#approvedTokensList, #pendingTokensList {
+  margin-top: 15px;
+  border-top: 1px solid #4a4a6a;
+  padding-top: 10px;
+}
+
+#approvedTokensList .appCard, #pendingTokensList .appCard {
+  margin-bottom: 8px;
+  padding: 10px;
+}
+
+#approvedTokensList .appCard .app-info, #pendingTokensList .appCard .app-info {
+  flex-grow: 1;
+}
+
+#approvedTokensList .appCard .app-actions, #pendingTokensList .appCard .app-actions {
+  display: flex;
+  gap: 5px;
 }
 
 /* Медиа-запросы для адаптивности */
