@@ -5,9 +5,9 @@
   <title>iPA Groove Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-  <!-- 🔒 Аутентификация -->
   <div id="auth-screen">
     <h2>Введите пароль</h2>
     <input type="password" id="passwordInput" placeholder="Пароль" />
@@ -15,54 +15,17 @@
     <p id="authError" class="error-message"></p>
   </div>
 
-  <!-- 🛠 Панель администратора -->
   <div id="admin-panel" style="display:none;">
     <h1>🛠 iPA Groove Admin Panel</h1>
 
-    <!-- 📦 Добавление и редактирование приложений -->
-    <div class="panel-section">
-      <h2>Добавить / Редактировать приложение</h2>
-      <form id="appForm">
-        <label for="repoType">Тип репозитория:</label>
-        <select id="repoType" name="repoType">
-          <option value="apps">Обычный репозиторий</option>
-          <option value="vipApps">VIP репозиторий</option>
-        </select>
-
-        <input type="text" id="name" placeholder="Название" required />
-        <input type="text" id="bundleID" placeholder="Bundle ID" required />
-        <input type="text" id="version" placeholder="Версия" required />
-        <input type="number" id="size" placeholder="Размер (в байтах)" required />
-        <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
-        <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
-        <textarea id="description" placeholder="Описание"></textarea>
-
-        <button type="submit">💾 Сохранить приложение</button>
-      </form>
-    </div>
-
-    <!-- 🔑 Генерация VIP токенов -->
-    <div class="panel-section">
-      <h2>Генерация VIP токена</h2>
-      <div id="vipTokenGenerator">
-        <label for="vipExpireDate">Дата окончания токена:</label>
-        <input type="datetime-local" id="vipExpireDate" />
-        <button id="generateVipTokenButton">🔑 Сгенерировать VIP токен</button>
-        <div id="tokenOutput"></div>
+    <div id="content-area">
       </div>
-    </div>
 
-    <!-- ✅ Подтверждение токенов -->
-    <div class="panel-section">
-      <h2>🕒 Токены, ожидающие подтверждения</h2>
-      <div id="pendingTokensList"></div>
-    </div>
-
-    <!-- 📱 Список приложений -->
-    <div class="panel-section">
-      <h2>Список приложений</h2>
-      <input type="text" id="appSearchInput" placeholder="Поиск по названию или Bundle ID..." />
-      <div id="appsList"></div>
+    <div id="navigation-panel">
+      <button id="nav-free" class="nav-button active"><i class="fas fa-gift"></i> FREE</button>
+      <button id="nav-vip" class="nav-button"><i class="fas fa-star"></i> VIP</button>
+      <button id="nav-token" class="nav-button"><i class="fas fa-key"></i> TOKEN</button>
+      <button id="nav-list" class="nav-button"><i class="fas fa-clipboard-list"></i> LIST</button>
     </div>
   </div>
 
