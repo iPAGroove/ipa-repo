@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- 🔒 Аутентификация -->
   <div id="auth-screen">
     <h2>Введите пароль</h2>
     <input type="password" id="passwordInput" placeholder="Пароль" />
@@ -14,9 +15,11 @@
     <p id="authError" class="error-message"></p>
   </div>
 
+  <!-- 🛠 Панель администратора -->
   <div id="admin-panel" style="display:none;">
-    <h1>🛠 IpaVip Admin Panel</h1>
+    <h1>🛠 iPA Groove Admin Panel</h1>
 
+    <!-- 📦 Добавление и редактирование приложений -->
     <div class="panel-section">
       <h2>Добавить / Редактировать приложение</h2>
       <form id="appForm">
@@ -38,6 +41,7 @@
       </form>
     </div>
 
+    <!-- 🔑 Генерация VIP токенов -->
     <div class="panel-section">
       <h2>Генерация VIP токена</h2>
       <div id="vipTokenGenerator">
@@ -48,11 +52,13 @@
       </div>
     </div>
 
+    <!-- ✅ Подтверждение токенов -->
     <div class="panel-section">
       <h2>🕒 Токены, ожидающие подтверждения</h2>
       <div id="pendingTokensList"></div>
     </div>
 
+    <!-- 📱 Список приложений -->
     <div class="panel-section">
       <h2>Список приложений</h2>
       <input type="text" id="appSearchInput" placeholder="Поиск по названию или Bundle ID..." />
