@@ -15,28 +15,127 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const form = document.getElementById("appForm");
-const output = document.getElementById("appsList");
-const repoSelect = document.getElementById("repoType");
-const tokenOutput = document.getElementById("tokenOutput");
-const vipExpireDateInput = document.getElementById("vipExpireDate");
-const generateVipTokenButton = document.getElementById("generateVipTokenButton");
-const appSearchInput = document.getElementById("appSearchInput");
-const pendingTokensList = document.getElementById("pendingTokensList");
+const contentArea = document.getElementById("content-area");
+const navFreeButton = document.getElementById("nav-free");
+const navVipButton = document.getElementById("nav-vip");
+const navTokenButton = document.getElementById("nav-token");
+const navListButton = document.getElementById("nav-list");
 
 let editKey = null;
 let currentApps = [];
+let currentRepoType = 'apps'; // По умолчанию показываем FREE
+
+// --- Функции для управления контентом ---
+
+function showSection(sectionId) {
+  contentArea.innerHTML = ''; // Очищаем текущий контент
+  let sectionContent = '';
+
+  switch (sectionId) {
+    case 'free':
+    case 'vip':
+      currentRepoType = (sectionId === 'free') ? 'apps' : 'vipApps';
+      sectionContent = `
+        <div class="panel-section">
+          <h2>Добавить / Редактировать ${sectionId === 'free' ? 'FREE' : 'VIP'} приложение</h2>
+          <form id="appForm">
+            <input type="hidden" id="repoType" value="${currentRepoType}" />
+            <input type="text" id="name" placeholder="Название" required />
+            <input type="text" id="bundleID" placeholder="Bundle ID" required />
+            <input type="text" id="version" placeholder="Версия" required />
+            <input type="number" id="size" placeholder="Размер (в байтах)" required />
+            <input type="text" id="downloadURL" placeholder="Ссылка на IPA" required />
+            <input type="text" id="iconURL" placeholder="Ссылка на иконку" required />
+            <textarea id="description" placeholder="Описание"></textarea>
+            <button type="submit">💾 Сохранить приложение</button>
+          </form>
+        </div>
+
+        <div class="panel-section">
+          <h2>Список ${sectionId === 'free' ? 'FREE' : 'VIP'} приложений</h2>
+          <input type="text" id="appSearchInput" placeholder="Поиск по названию или Bundle ID..." />
+          <div id="appsList"></div>
+        </div>
+      `;
+      break;
+
+    case 'token':
+      sectionContent = `
+        <div class="panel-section">
+          <h2>Генерация VIP токена</h2>
+          <div id="vipTokenGenerator">
+            <label for="tokenDuration">Срок действия токена:</label>
+            <select id="tokenDuration">
+              <option value="1">1 месяц</option>
+              <option value="3">3 месяца</option>
+              <option value="6">6 месяцев</option>
+            </select>
+            <button id="generateVipTokenButton">🔑 Сгенерировать VIP токен</button>
+            <div id="tokenOutput"></div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'list':
+      sectionContent = `
+        <div class="panel-section">
+          <h2>Список всех токенов</h2>
+          <h3>✅ Подтвержденные токены</h3>
+          <div id="approvedTokensList"></div>
+          <h3>🕒 Токены, ожидающие подтверждения</h3>
+          <div id="pendingTokensList"></div>
+        </div>
+      `;
+      break;
+  }
+
+  contentArea.innerHTML = sectionContent;
+  initializeSection(sectionId);
+}
+
+function initializeSection(sectionId) {
+  switch (sectionId) {
+    case 'free':
+    case 'vip':
+      const appForm = document.getElementById("appForm");
+      const appsListOutput = document.getElementById("appsList");
+      const appSearchInput = document.getElementById("appSearchInput");
+
+      // Привязка формы
+      appForm.addEventListener("submit", handleAppFormSubmit);
+
+      // Привязка поиска
+      appSearchInput.addEventListener('input', filterAndDisplayApps);
+
+      loadApps(); // Загружаем приложения для текущего типа репозитория
+      break;
+
+    case 'token':
+      const generateVipTokenButton = document.getElementById("generateVipTokenButton");
+      generateVipTokenButton.addEventListener("click", generateVipToken);
+      break;
+
+    case 'list':
+      loadAllTokens();
+      break;
+  }
+}
+
+// --- Функции для работы с приложениями (FREE/VIP) ---
 
 function loadApps() {
-  const repo = repoSelect.value;
-  const appsPath = `${repo}/apps`;
+  const appsPath = `${currentRepoType}/apps`;
 
   onValue(ref(db, appsPath), (snapshot) => {
-    output.innerHTML = '';
+    const appsListOutput = document.getElementById("appsList");
+    if (!appsListOutput) return; // Проверка, что элемент существует
+
+    appsListOutput.innerHTML = '';
     currentApps = [];
 
     if (!snapshot.exists()) {
-      output.innerHTML = `<p>Нет приложений в этом репозитории.</p>`;
+      appsListOutput.innerHTML = `<p>Нет приложений в этом репозитории.</p>`;
       return;
     }
 
@@ -49,13 +148,21 @@ function loadApps() {
     filterAndDisplayApps();
   }, (error) => {
     console.error("Ошибка загрузки приложений:", error);
-    output.innerHTML = `<p class="error-message">Ошибка загрузки данных: ${error.message}</p>`;
+    const appsListOutput = document.getElementById("appsList");
+    if (appsListOutput) {
+      appsListOutput.innerHTML = `<p class="error-message">Ошибка загрузки данных: ${error.message}</p>`;
+    }
   });
 }
 
 function filterAndDisplayApps() {
-  output.innerHTML = `<h2>📱 ${repoSelect.value === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
-  output.innerHTML += `<p><small>Путь: ${repoSelect.value}/apps</small></p><hr>`;
+  const appsListOutput = document.getElementById("appsList");
+  const appSearchInput = document.getElementById("appSearchInput");
+
+  if (!appsListOutput || !appSearchInput) return;
+
+  appsListOutput.innerHTML = `<h2>📱 ${currentRepoType === 'vipApps' ? 'VIP' : 'Обычные'} приложения</h2>`;
+  appsListOutput.innerHTML += `<p><small>Путь: ${currentRepoType}/apps</small></p><hr>`;
 
   const searchTerm = appSearchInput.value.toLowerCase();
   const filteredApps = currentApps.filter(app =>
@@ -64,7 +171,7 @@ function filterAndDisplayApps() {
   );
 
   if (filteredApps.length === 0) {
-    output.innerHTML += `<p>Приложения не найдены.</p>`;
+    appsListOutput.innerHTML += `<p>Приложения не найдены.</p>`;
     return;
   }
 
@@ -79,10 +186,10 @@ function filterAndDisplayApps() {
       </div>
       <div class="app-actions">
         <button class="editBtn" data-id="${app.key}">✏️ Редактировать</button>
-        <button class="deleteBtn" data-repo="${repoSelect.value}" data-id="${app.key}">🗑️ Удалить</button>
+        <button class="deleteBtn" data-repo="${currentRepoType}" data-id="${app.key}">🗑️ Удалить</button>
       </div>
     `;
-    output.appendChild(appDiv);
+    appsListOutput.appendChild(appDiv);
 
     appDiv.querySelector('.editBtn').addEventListener('click', () => editApp(app.key, app));
     appDiv.querySelector('.deleteBtn').addEventListener('click', async (e) => {
@@ -97,6 +204,9 @@ function filterAndDisplayApps() {
 }
 
 function editApp(key, app) {
+  const form = document.getElementById("appForm");
+  if (!form) return;
+
   form.name.value = app.name;
   form.bundleID.value = app.bundleID;
   form.version.value = app.version;
@@ -108,9 +218,10 @@ function editApp(key, app) {
   form.scrollIntoView({ behavior: 'smooth' });
 }
 
-form.addEventListener("submit", async (e) => {
+async function handleAppFormSubmit(e) {
   e.preventDefault();
 
+  const form = e.target;
   const iconUrlValue = form.iconURL.value;
   const finalIconURL = iconUrlValue.includes('github.com') && !iconUrlValue.endsWith('?raw=true')
     ? iconUrlValue + '?raw=true'
@@ -132,8 +243,7 @@ form.addEventListener("submit", async (e) => {
     appUpdateTime: new Date().toISOString()
   };
 
-  const repo = repoSelect.value;
-  const path = `${repo}/apps`;
+  const path = `${currentRepoType}/apps`;
 
   try {
     if (editKey) {
@@ -150,19 +260,25 @@ form.addEventListener("submit", async (e) => {
     console.error("Ошибка сохранения приложения:", error);
     alert(`Ошибка сохранения: ${error.message}`);
   }
-});
+}
 
-generateVipTokenButton.addEventListener("click", async () => {
-  const expireDateValue = vipExpireDateInput.value;
-  if (!expireDateValue) return alert("Выберите дату окончания токена.");
+// --- Функции для работы с токенами ---
+
+async function generateVipToken() {
+  const tokenDurationSelect = document.getElementById("tokenDuration");
+  const tokenOutput = document.getElementById("tokenOutput");
+  if (!tokenDurationSelect || !tokenOutput) return;
+
+  const durationMonths = parseInt(tokenDurationSelect.value);
+  const now = new Date();
+  const expireDate = new Date(now.setMonth(now.getMonth() + durationMonths));
 
   const token = Math.random().toString(36).substring(2, 12);
-  const expireDate = new Date(expireDateValue).toISOString();
 
   try {
     await set(ref(db, `vipTokens/${token}`), {
       createdAt: new Date().toISOString(),
-      expiresAt: expireDate,
+      expiresAt: expireDate.toISOString(),
       approved: false,
       used: false
     });
@@ -170,7 +286,7 @@ generateVipTokenButton.addEventListener("click", async () => {
     tokenOutput.innerHTML = `
       <h3>✅ VIP токен создан</h3>
       <p><b>🔑 Токен:</b> <code>${token}</code></p>
-      <p><b>📅 Истекает:</b> ${new Date(expireDate).toLocaleString()}</p>
+      <p><b>📅 Истекает:</b> ${expireDate.toLocaleString()}</p>
       <p><b>📥 GBox JSON:</b></p>
       <textarea readonly onclick="this.select()" style="width:100%; height:55px; font-size:13px;">
 https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
@@ -181,14 +297,19 @@ https://api-u3vwde53ja-uc.a.run.app/vipRepo.json?token=${token}
     console.error("Ошибка генерации VIP токена:", error);
     tokenOutput.innerHTML = `<p class="error-message">Ошибка генерации токена: ${error.message}</p>`;
   }
-});
+}
 
-// ✅ Загрузка токенов на подтверждение
-function loadPendingTokens() {
+function loadAllTokens() {
+  const approvedTokensList = document.getElementById("approvedTokensList");
+  const pendingTokensList = document.getElementById("pendingTokensList");
+  if (!approvedTokensList || !pendingTokensList) return;
+
   onValue(ref(db, "vipTokens"), (snapshot) => {
+    approvedTokensList.innerHTML = "";
     pendingTokensList.innerHTML = "";
 
     if (!snapshot.exists()) {
+      approvedTokensList.innerHTML = "<p>Нет подтвержденных токенов.</p>";
       pendingTokensList.innerHTML = "<p>Нет токенов в ожидании.</p>";
       return;
     }
@@ -197,50 +318,90 @@ function loadPendingTokens() {
       const token = child.key;
       const data = child.val();
 
-      const expired = new Date(data.expiresAt) < new Date();
+      const createdAt = new Date(data.createdAt);
+      const expiresAt = new Date(data.expiresAt);
+      const now = new Date();
+
+      const expired = expiresAt < now;
       const approved = data.approved === true;
       const used = data.used === true;
 
-      if (!approved && !expired && !used) {
-        const item = document.createElement("div");
-        item.className = "appCard";
-        item.innerHTML = `
-          <div class="app-info">
-            <strong>Токен:</strong> <code>${token}</code><br>
-            <small>Истекает: ${new Date(data.expiresAt).toLocaleString()}</small>
-          </div>
-          <div class="app-actions">
-            <button class="approveBtn">✅ Подтвердить</button>
-            <button class="deleteBtn">🗑 Удалить</button>
-          </div>
-        `;
+      const timeRemainingMs = expiresAt.getTime() - now.getTime();
+      const daysRemaining = Math.ceil(timeRemainingMs / (1000 * 60 * 60 * 24));
+      const daysLeftText = daysRemaining > 0 ? `${daysRemaining} дн. осталось` : 'Истёк';
 
-        item.querySelector(".approveBtn").addEventListener("click", async () => {
+
+      const item = document.createElement("div");
+      item.className = "appCard";
+      item.innerHTML = `
+        <div class="app-info">
+          <strong>Токен:</strong> <code>${token}</code><br>
+          <small>Создан: ${createdAt.toLocaleDateString()}</small><br>
+          <small>Истекает: ${expiresAt.toLocaleString()}</small><br>
+          <small>${daysLeftText}</small>
+        </div>
+        <div class="app-actions">
+          ${!approved && !expired && !used ? '<button class="approveBtn">✅ Подтвердить</button>' : ''}
+          <button class="deleteBtn">🗑 Удалить</button>
+        </div>
+      `;
+
+      item.querySelector(".deleteBtn").addEventListener("click", async () => {
+        if (confirm(`Удалить токен ${token}?`)) {
+          await remove(ref(db, `vipTokens/${token}`));
+        }
+      });
+
+      if (!approved && !expired && !used) {
+        item.querySelector(".approveBtn")?.addEventListener("click", async () => {
           await update(ref(db, `vipTokens/${token}`), { approved: true });
           alert("Токен подтверждён ✅");
-          loadPendingTokens();
         });
-
-        item.querySelector(".deleteBtn").addEventListener("click", async () => {
-          if (confirm("Удалить этот токен?")) {
-            await remove(ref(db, `vipTokens/${token}`));
-            loadPendingTokens();
-          }
-        });
-
         pendingTokensList.appendChild(item);
+      } else if (approved) {
+        approvedTokensList.appendChild(item);
       }
     });
   });
 }
 
-repoSelect.addEventListener('change', loadApps);
-appSearchInput.addEventListener('input', filterAndDisplayApps);
+// --- Обработчики навигации ---
+
+navFreeButton.addEventListener('click', () => {
+  showSection('free');
+  setActiveNavButton(navFreeButton);
+});
+
+navVipButton.addEventListener('click', () => {
+  showSection('vip');
+  setActiveNavButton(navVipButton);
+});
+
+navTokenButton.addEventListener('click', () => {
+  showSection('token');
+  setActiveNavButton(navTokenButton);
+});
+
+navListButton.addEventListener('click', () => {
+  showSection('list');
+  setActiveNavButton(navListButton);
+});
+
+function setActiveNavButton(button) {
+  document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+  button.classList.add('active');
+}
+
+// --- Инициализация при загрузке страницы ---
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadApps();
-  loadPendingTokens();
-  const now = new Date();
-  now.setMonth(now.getMonth() + 1);
-  vipExpireDateInput.value = now.toISOString().substring(0, 16);
+  // Показываем секцию FREE по умолчанию при загрузке
+  showSection('free');
+  setActiveNavButton(navFreeButton);
+});
+
+// Добавлен для отслеживания изменения статуса аутентификации (из auth.js)
+window.addEventListener('auth-success', () => {
+  showSection('free');
+  setActiveNavButton(navFreeButton);
 });
